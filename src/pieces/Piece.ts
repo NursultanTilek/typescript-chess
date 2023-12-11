@@ -8,13 +8,11 @@ import { CoordinationId, PieceType } from '../types';
 export abstract class Piece {
   coordination: Coordination;
   color: Color;
-  availableMoves: Set<CoordinationId>;
   name: PieceName;
   isPieceMoved: boolean;
   constructor(coordination: Coordination, color: Color) {
     this.coordination = coordination;
     this.color = color;
-    this.availableMoves = new Set();
     this.name = 0;
     this.isPieceMoved = false;
   }
@@ -22,6 +20,8 @@ export abstract class Piece {
   //returns available moves where piece can legally move
   getAvailableMoves(): Set<CoordinationId> {
     const boardCondition = usePieces.getState().pieces;
+    const availableMoves:Set<CoordinationId>=new Set()
+   
 
     for (const shift of this.getPieceMoves()) {
       if (this.coordination.canShift(shift)) {
@@ -34,12 +34,12 @@ export abstract class Piece {
           this.isSquareAvailableForMove(newCoordination) &&
           this.isSquareAvailableForAttack(newCoordination, boardCondition)
         ) {
-          this.availableMoves.add(newCoordination.id);
+          availableMoves.add(newCoordination.id);
         }
       }
     }
 
-    return this.availableMoves;
+    return availableMoves;
   }
 
   protected isSquareAvailableForMove(coordination: Coordination) {

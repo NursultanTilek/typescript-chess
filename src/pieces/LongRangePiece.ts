@@ -36,6 +36,7 @@ export abstract class LongRangePiece extends Piece {
         this.coordination,
         coordination
       );
+      
     } else {
       coordinationBetween = BoardUtils.getDiagonalCoordinationBetween(
         this.coordination,

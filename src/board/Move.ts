@@ -51,7 +51,7 @@ export class Move implements IMove {
   }
 
   isMoveOnlyInSelectedPosition(piece: PieceType) {
-    const availableMoves = piece?.availableMoves;
+    const availableMoves = piece?.getAvailableMoves();
     if (availableMoves && this.to.id) {
       if (availableMoves.has(this.to.id)) return true;
     }

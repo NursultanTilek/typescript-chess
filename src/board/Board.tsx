@@ -1,13 +1,13 @@
 import React from "react";
 import Coordination from "./Coordination";
-import Pawn from "../piece/Pawn";
-import Rook from "../piece/Rook";
+import Pawn from "../pieces/Pawn";
+import Rook from "../pieces/Rook";
 import { Color } from "../enum";
-import Knight from "../piece/Knight";
-import Bishop from "../piece/Bishop";
-import Queen from "../piece/Queen";
-import King from "../piece/King";
-import { Piece } from "../piece/Piece";
+import Knight from "../pieces/Knight";
+import Bishop from "../pieces/Bishop";
+import Queen from "../pieces/Queen";
+import King from "../pieces/King";
+import { Piece } from "../pieces/Piece";
 import BoardFactory from "./BoardFactory";
 import { Move } from "./Move";
 
@@ -20,7 +20,7 @@ export default class Board extends React.Component  {
 
     constructor(props:never) {
         super(props)
-        this.board=this.fromFEN('r3k2r/pp3p1p/8/2p3pP/8/8/PP4P1/R3K2R w KQkq g6 0 1')
+        this.board=this.fromFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
     }
    
 

@@ -14,7 +14,7 @@ import blackKing from '../../src/assets/images/king_b.png';
 import { Color } from '../enum';
 import { CoordinationId, PieceType } from '../types';
 import { usePieces } from '../store/usePieces';
-import { Piece } from '../piece/Piece';
+import { Piece } from '../pieces/Piece';
 import Coordination from './Coordination';
 
 /** */ 

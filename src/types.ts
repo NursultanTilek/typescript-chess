@@ -1,4 +1,4 @@
-import { Piece } from "./piece/Piece"
+import { Piece } from "./pieces/Piece"
 
 
 export type CoordinationId=string|undefined

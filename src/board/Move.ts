@@ -70,6 +70,12 @@ export class Move implements IMove {
     const piece = this.boardCondition.get(this.from?.id);
     return piece?.color;
   }
+  get isTheSameColor(){
+    const fromPiece=this.getPiece(this.from)
+    const toPiece=this.getPiece(this.to)
+    return fromPiece?.color===toPiece?.color
+
+  }
 
   setPiece(piece: PieceType) {
     if (this.to.id && piece) {

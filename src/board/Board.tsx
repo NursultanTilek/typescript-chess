@@ -103,15 +103,18 @@ export default class Board extends React.Component {
     const { selectedPieceCoordination } = this.state;
     if (selectedPieceCoordination) {
       if (this.board.getPiece(selectedPieceCoordination)?.color !== this.colorTurn) return
-
       else {
         const indicators = this.board.getPiece(selectedPieceCoordination)?.getAvailableMoves()
         return indicators
       }
     }
-
-
-
+  }
+  isCurrentPositionLegalToMove(currentCondition: Coordination) {
+    const { selectedPieceCoordination } = this.state;
+    if (selectedPieceCoordination) {
+      const availableMoves = this.board.getPiece(selectedPieceCoordination)?.getAvailableMoves()
+      return availableMoves?.has(currentCondition.id)
+    }
   }
 
   showCheckedKing() {
@@ -121,6 +124,12 @@ export default class Board extends React.Component {
   renderPieceMoveIndicator(file: string, rank: number): string {
     const currentBoard = new Coordination(file, rank)
     const indicators = this.getMoveIndicators()
+
+    const { selectedPieceCoordination } = this.state;
+    if (selectedPieceCoordination) {
+      const selected=this.board.getPiece(selectedPieceCoordination)?.coordination.id
+      if (currentBoard.id === selected) return 'selected'
+    }
 
     if (!indicators) return ''
     for (const indicator of indicators) {
@@ -132,13 +141,20 @@ export default class Board extends React.Component {
     }
     return ''
   }
+  renderPreviousMovePositions(file: string, rank: number) {
+    const history = useHistory.getState().history
+    if (history.length) {
+      const lastMove = useHistory.getState().lastMove()
+      const coordination = new Coordination(file, rank).id
+      if (lastMove.to.id == coordination || lastMove.from.id == coordination) return 'last-move'
+    }
+    return ''
+  }
 
   handleMove = (file: string, rank: number) => {
     const { selectedPieceCoordination } = this.state;
     const currentCoordination = new Coordination(file, rank);
-    // if(this.board.getPiece(selectedPieceCoordination)?.color!===this.colorTurn) 
-
-    if (selectedPieceCoordination && this.board.getPiece(selectedPieceCoordination)) {
+    if (selectedPieceCoordination && this.board.getPiece(selectedPieceCoordination) && this.isCurrentPositionLegalToMove(currentCoordination)) {
       // If a piece is already selected, attempt to move it
       const pieceActivity = new Move(currentCoordination, selectedPieceCoordination)
       pieceActivity.move()
@@ -176,7 +192,7 @@ export default class Board extends React.Component {
                       {piece && (
                         <img
                           //todo where the check indicator will be shown 
-                          // className="check"
+                          className=" absolute inset-0 z-10 check"
                           src={this.board.getPieceImage(piece)}
                           alt={`${piece.name}_${piece.color}`}
                         />
@@ -184,7 +200,12 @@ export default class Board extends React.Component {
 
                     </div>
                     <div
-                      className={`absolute inset-0 z-0   ${this.renderPieceMoveIndicator(file, rank)} `}
+                      className={`absolute inset-0 z-10 ${this.renderPieceMoveIndicator(file, rank)} `}
+                    >
+                    </div>
+
+                    <div
+                      className={`absolute inset-0 z-0 ${this.renderPreviousMovePositions(file, rank)} `}
                     >
                     </div>
 

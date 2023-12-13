@@ -30,8 +30,6 @@ export class Move implements IMove {
   }
 
   move() {
-    //TODO 3) QUEUE OF MOVE BETWEEN BLACK AND WHITE
-
     const piece: PieceType = this.boardCondition.get(this.from.id);
 
     if (
@@ -39,7 +37,7 @@ export class Move implements IMove {
       !this.isTheSamePosition &&
       this.isMoveOnlyInSelectedPosition(piece)
     ) {
-      this.castle(piece);
+      this.handleCastling(piece);
       this.deleteEnPassantPawn();
       if (this.transformPawnToAnotherPiece()) {
         this.transformPawnToAnotherPiece();
@@ -127,23 +125,23 @@ export class Move implements IMove {
     this.setPiece(piece);
     this.deletePiece();
   }
-  castle(piece: PieceType) {
+  handleCastling(piece: PieceType) {
     const isKing = piece?.name === PieceName.KING;
     const isWhite = piece?.color === Color.WHITE;
     const isBlack = piece?.color === Color.BLACK;
   
     if (isKing) {
       if (isWhite) {
-        this.handleCastling('G1', 'H1', 'F1', piece);
-        this.handleCastling('C1', 'A1', 'D1', piece);
+        this.castle('G1', 'H1', 'F1', piece);
+        this.castle('C1', 'A1', 'D1', piece);
       } else if (isBlack) {
-        this.handleCastling('G8', 'H8', 'F8', piece);
-        this.handleCastling('C8', 'A8', 'D8', piece);
+        this.castle('G8', 'H8', 'F8', piece);
+        this.castle('C8', 'A8', 'D8', piece);
       }
     }
   }
 
-  handleCastling(kingTargetId: string, rookSourceId: string, rookTargetId: string, piece: PieceType) {
+  castle(kingTargetId: string, rookSourceId: string, rookTargetId: string, piece: PieceType) {
     const boardCondition = usePieces.getState().pieces;
   
     if (this.to.id === kingTargetId) {

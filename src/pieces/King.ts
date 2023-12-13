@@ -1,10 +1,8 @@
 import BoardFactory from '../board/BoardFactory';
-import { BoardUtils } from '../board/BoardUtils';
 import Coordination from '../board/Coordination';
 import CoordinationShift from '../board/CoordinationShift';
 import { Color, PieceName } from '../enum';
 import { usePieces } from '../store/usePieces';
-import { CoordinationId, PieceType } from '../types';
 import { Piece } from './Piece';
 
 export default class King extends Piece {
@@ -85,60 +83,36 @@ export default class King extends Piece {
     return [...this.regularKingMoves, ...this.castlingMoves];
   }
 
-  private isMoveSafe(coordination: Coordination): boolean {
-    const boardCondition=usePieces.getState().pieces
-    const tempBoard = new Map(boardCondition);
-    // Simulating the move
-    tempBoard.delete(this.coordination.id);
-    const king = new King(coordination, this.color);
-    tempBoard.set(coordination.id, king);
-    // Check if the king would be in check after the move
-    const isInCheck = this.isSquareAttackedByEnemy(
-      coordination,
-      this.oppositeColor(this.color),
-      tempBoard
-    );
+  // override isMoveSafe(coordination: Coordination) {
+  //   const boardCondition=usePieces.getState().pieces
+  //   const tempBoard = new Map(boardCondition);
+  //   // Simulating the move
+  //   tempBoard.delete(this.coordination.id);
+  //   const king = new King(coordination, this.color);
+  //   tempBoard.set(coordination.id, king);
+  //   // Check if the king would be in check after the move
+  //   const isInCheck = this.isSquareAttackedByEnemy(
+  //     coordination,
+  //     this.oppositeColor(this.color),
+  //     tempBoard
+  //   );
 
-    //Checking enemy attacking the way to castle
+  //   // Returning the opposite of isInCheck because if the king is in check, the move is not safe
 
-    const squareRank = this.color ? 8 : 1;
-    let shortCastle=new Coordination(BoardFactory.files[5],squareRank)
-    let longCastle=new Coordination(BoardFactory.files[2],squareRank)
-    let isCastleAvailable=true
-
-      if(coordination===shortCastle && this.isSquareAttackedByEnemy(coordination,this.oppositeColor(this.color),boardCondition)){
-        isCastleAvailable=false
-      }
-
-    // Returning the opposite of isInCheck because if the king is in check, the move is not safe
-
-    return isCastleAvailable && !isInCheck;
-  }
-
- 
-  
-  // override isSquareAvailableForAttack(coordination: Coordination, boardCondition: Map<CoordinationId, PieceType>): boolean {
-  //   const coordinationBetween=BoardUtils.getHorizontalCoordinationBetween(this.coordination,coordination)
-  //   for (const coord of coordinationBetween) {
-  //     if (boardCondition.get(coord.id)) {
-  //       return false;
-  //     }
-  //   }
-
-  //   return true;
+  //   return  !isInCheck;
   // }
+
 
   override isSquareAvailableForMove(coordination: Coordination): boolean {
     const boardCondition = usePieces.getState().pieces;
-    const isCanMove = super.isSquareAvailableForMove(coordination);
+    const isCanMove = super.isSquareAvailableForMove(coordination,boardCondition);
     if (!isCanMove) return false;
-
     return (
       !this.isSquareAttackedByEnemy(
         coordination,
         this.oppositeColor(this.color),
         boardCondition
-      ) && this.isMoveSafe(coordination)
+      ) 
     );
   }
 }

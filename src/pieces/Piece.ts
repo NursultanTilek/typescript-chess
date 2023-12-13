@@ -1,3 +1,4 @@
+import BoardFactory from '../board/BoardFactory';
 import Coordination from '../board/Coordination';
 import CoordinationShift from '../board/CoordinationShift';
 import { Color, PieceName } from '../enum';
@@ -19,31 +20,28 @@ export abstract class Piece {
 
   //returns available moves where piece can legally move
   getAvailableMoves(): Set<CoordinationId> {
-    const boardCondition = usePieces.getState().pieces;
-    const availableMoves:Set<CoordinationId>=new Set()
-   
+    const availableMoves: Set<CoordinationId> = new Set();
+    const boardCondtion = usePieces.getState().pieces;
 
-    for (const shift of this.getPieceMoves()) {
-      if (this.coordination.canShift(shift)) {
-        const coordination = new Coordination(
-          this.coordination.file,
-          this.coordination.rank
-        );
-        const newCoordination = coordination.shift(shift);
-        if (
-          this.isSquareAvailableForMove(newCoordination) &&
-          this.isSquareAvailableForAttack(newCoordination, boardCondition)
-        ) {
-          availableMoves.add(newCoordination.id);
-        }
+    for (const move of this.getPieceMoves()) {
+      const newCoordination = this.coordinationAvailablityUttils(move);
+      if (
+        newCoordination &&
+        this.isSquareAvailableForAttack(newCoordination, boardCondtion) &&
+        this.isSquareAvailableForMove(newCoordination, boardCondtion) &&
+        this.isMoveSafe(newCoordination)
+      ) {
+        availableMoves.add(newCoordination.id);
       }
     }
 
     return availableMoves;
   }
 
-  protected isSquareAvailableForMove(coordination: Coordination) {
-    const boardCondition = usePieces.getState().pieces;
+  protected isSquareAvailableForMove(
+    coordination: Coordination,
+    boardCondition: Map<CoordinationId, PieceType>
+  ) {
     return (
       !this.isSamePieceColor(boardCondition, coordination) ||
       this.isSquareEmpty(boardCondition, coordination)
@@ -64,6 +62,58 @@ export abstract class Piece {
     return boardCondition.get(coordination.id)?.color === this.color;
   }
 
+  public isMoveSafe(newCoordination: Coordination) {
+    const boardCondition = usePieces.getState().pieces;
+    const tempBoard = new Map(boardCondition);
+            // Simulating the move
+      tempBoard.delete(this.coordination.id);
+      const pieceName = this.name;
+      const color = this.color;
+      const newPiece = BoardFactory.setupPiecePosition(
+        newCoordination,
+        pieceName,
+        color
+      );
+      tempBoard.set(newCoordination.id, newPiece);
+
+      return !this.isInCheck(tempBoard)
+
+  
+  }
+
+  private coordinationAvailablityUttils(move: CoordinationShift) {
+    if (this.coordination.canShift(move)) {
+      const coordination = new Coordination(
+        this.coordination.file,
+        this.coordination.rank
+      );
+      if (coordination) return coordination.shift(move);
+    }
+  }
+  public isInCheck(boardCondition: Map<CoordinationId, PieceType>) {
+    const kingPosition = this.sameColorKingPosition(boardCondition);
+    if (kingPosition)
+      return this.isSquareAttackedByEnemy(
+        kingPosition,
+        this.oppositeColor(this.color),
+        boardCondition
+      );
+  }
+  public sameColorKingPosition(
+    boardCondition: Map<CoordinationId, PieceType>
+  ): Coordination | undefined {
+    const boardPieces = boardCondition.values();
+    for (const piece of boardPieces) {
+      if (
+        piece &&
+        piece.color === this.color &&
+        piece.name === PieceName.KING
+      ) {
+        return piece.coordination;
+      }
+    }
+  }
+
   protected getPiecesByColor(
     color: Color,
     board: Map<CoordinationId, PieceType>
@@ -79,8 +129,8 @@ export abstract class Piece {
     return result;
   }
 
-  //TODO 1)CHEKCING ENEMY PIECE ATTACKING THE KING, WHICH PARALYZED PIECES WHICH CANNOT BLOCK THE ATTACK OR CAPTURE THE ATTACKING PIECE,
-  //TODO MENTION DOUBLE ATTACK ,WHERE ATTACKED KING MAKE THE MOVE
+  //TODO 1)CHECKING ENEMY PIECE ATTACKING THE KING, WHICH PARALYZED PIECES WHICH CAN BLOCK THE ATTACK OR CAPTURE THE ATTACKING PIECE,THIS IS LOOK LIKE A GRAPH, WHERE YOU ARE SEARCHING THE SHORTEST PATH TO REACH TO KING
+  //TODO MENTION DOUBLE ATTACK ,WHERE ATTACKED KING MAKE THE MOVE,OR IT MAYBE RESOLVED BY THE FIRST ONE
   //TODO 2) DO NOT FORGET ABOUT DISCOVERY ATTACK TO THE OWN KING , AFTER YOU DID THIS , SOLVE THIS LIKE i DID ON KING CLASS LIKE THIS FUNCTION isMoveSafe()
 
   //Checking a square where king can not move

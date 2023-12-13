@@ -11,6 +11,7 @@ import { Piece } from "../pieces/Piece";
 import BoardFactory from "./BoardFactory";
 import { Move } from "./Move";
 import { useHistory } from "../store/useHistory";
+import { usePieces } from "../store/usePieces";
 
 
 
@@ -24,6 +25,7 @@ export default class Board extends React.Component {
     this.board = this.fromFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
   }
 
+//todo: add moves to local storate , or make by the fen in router , this is would be better rather than local storage and cookies 
 
   fromFEN(fen: string): BoardFactory {
     const board = new BoardFactory(fen);
@@ -99,7 +101,7 @@ export default class Board extends React.Component {
     }
 
   }
-  getMoveIndicators() {
+  private getMoveIndicators() {
     const { selectedPieceCoordination } = this.state;
     if (selectedPieceCoordination) {
       if (this.board.getPiece(selectedPieceCoordination)?.color !== this.colorTurn) return
@@ -109,25 +111,41 @@ export default class Board extends React.Component {
       }
     }
   }
-  isCurrentPositionLegalToMove(currentCondition: Coordination) {
+  private isCurrentPositionLegalToMove(currentCondition: Coordination) {
     const { selectedPieceCoordination } = this.state;
     if (selectedPieceCoordination) {
       const availableMoves = this.board.getPiece(selectedPieceCoordination)?.getAvailableMoves()
       return availableMoves?.has(currentCondition.id)
     }
+    else {
+      this.setState({ selectedPieceCoordination: null });
+      return false
+    }
   }
 
-  showCheckedKing() {
+  private showCheckedKing(file: string, rank: number) {
 
+    //todo: its work as expected , when we click on only on our own color pieces, must work , even if the piece is not clicked 
+    const coordination = new Coordination(file, rank)
+    const { selectedPieceCoordination } = this.state;
+    if(selectedPieceCoordination){
+      const piece = this.board.getPiece(selectedPieceCoordination)
+      const king=piece?.sameColorKingPosition(this.board.pieces)
+      if(piece?.isInCheck(this.board.pieces) && king?.id===coordination.id){
+        return 'under-check'
+      }
+    }
+
+    return ''
   }
 
-  renderPieceMoveIndicator(file: string, rank: number): string {
+  private renderPieceMoveIndicator(file: string, rank: number): string {
     const currentBoard = new Coordination(file, rank)
     const indicators = this.getMoveIndicators()
 
     const { selectedPieceCoordination } = this.state;
     if (selectedPieceCoordination) {
-      const selected=this.board.getPiece(selectedPieceCoordination)?.coordination.id
+      const selected = this.board.getPiece(selectedPieceCoordination)?.coordination.id
       if (currentBoard.id === selected) return 'selected'
     }
 
@@ -141,7 +159,7 @@ export default class Board extends React.Component {
     }
     return ''
   }
-  renderPreviousMovePositions(file: string, rank: number) {
+  private renderPreviousMovePositions(file: string, rank: number) {
     const history = useHistory.getState().history
     if (history.length) {
       const lastMove = useHistory.getState().lastMove()
@@ -151,10 +169,11 @@ export default class Board extends React.Component {
     return ''
   }
 
-  handleMove = (file: string, rank: number) => {
+  private handleMove = (file: string, rank: number) => {
+
     const { selectedPieceCoordination } = this.state;
     const currentCoordination = new Coordination(file, rank);
-    if (selectedPieceCoordination && this.board.getPiece(selectedPieceCoordination) && this.isCurrentPositionLegalToMove(currentCoordination)) {
+    if (selectedPieceCoordination && this.isCurrentPositionLegalToMove(currentCoordination)) {
       // If a piece is already selected, attempt to move it
       const pieceActivity = new Move(currentCoordination, selectedPieceCoordination)
       pieceActivity.move()
@@ -191,24 +210,17 @@ export default class Board extends React.Component {
                     <div>
                       {piece && (
                         <img
-                          //todo where the check indicator will be shown 
-                          className=" absolute inset-0 z-10 check"
+                          //todo: the check indicator on king
+                          className={` absolute inset-0 z-10 ${this.showCheckedKing(file,rank)}`}
                           src={this.board.getPieceImage(piece)}
                           alt={`${piece.name}_${piece.color}`}
                         />
                       )}
-
                     </div>
                     <div
-                      className={`absolute inset-0 z-10 ${this.renderPieceMoveIndicator(file, rank)} `}
+                      className={`absolute inset-0 z-2 ${this.renderPieceMoveIndicator(file, rank)} ${this.renderPreviousMovePositions(file, rank)}  `}
                     >
                     </div>
-
-                    <div
-                      className={`absolute inset-0 z-0 ${this.renderPreviousMovePositions(file, rank)} `}
-                    >
-                    </div>
-
                   </div>
                 );
 

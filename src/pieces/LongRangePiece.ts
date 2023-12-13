@@ -2,7 +2,6 @@ import { BoardUtils } from '../board/BoardUtils';
 import Coordination from '../board/Coordination';
 import CoordinationShift from '../board/CoordinationShift';
 import { Color } from '../enum';
-import { usePieces } from '../store/usePieces';
 import { CoordinationId, PieceType } from '../types';
 import { Piece } from './Piece';
 
@@ -11,10 +10,9 @@ export abstract class LongRangePiece extends Piece {
     super(coordination, color);
   }
 
-  override isSquareAvailableForMove(coordination: Coordination): boolean {
-    const result = super.isSquareAvailableForMove(coordination);
+  override isSquareAvailableForMove(coordination: Coordination,boardCondition:Map<CoordinationId,PieceType>): boolean {
+    const result = super.isSquareAvailableForMove(coordination,boardCondition);
     if (result) {
-      const boardCondition = usePieces.getState().pieces;
       return this.isSquareAvailableForAttack(coordination, boardCondition);
     } else {
       return false;

@@ -75,6 +75,7 @@ export abstract class Piece {
       color
     );
     tempBoard.set(newCoordination.id, newPiece);
+   
 
     return !this.isInCheck(tempBoard);
   }
@@ -176,7 +177,5 @@ export abstract class Piece {
     return false;
   }
   abstract getPieceMoves(): CoordinationShift[];
-  castlingMoves() {
-    return this.getPieceMoves();
-  }
+
 }

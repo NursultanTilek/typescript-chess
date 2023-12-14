@@ -26,7 +26,7 @@ import King from '../pieces/King';
 /** */
 
 class BoardFactory {
-  startingFen: string = 'r3k2r/pp3p1p/8/2p3pP/8/8/PP4P1/R3K2R w KQkq g6 0 1';
+  startingFen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
   pieces = new Map<CoordinationId, PieceType>();
 
   static files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];

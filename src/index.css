@@ -17,9 +17,23 @@
 }
 .empty:hover {
   background: rgba(20, 85, 30, 0.5);
-
 }
 .piece:hover {
+  background: rgba(20, 85, 30, 0.5);
+}
+.empty:hover::after,
+.piece:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(20, 85, 30, 0.5);
+  z-index: 20;
+}
+
+.selected {
   background: rgba(20, 85, 30, 0.5);
 }
 .under-check {
@@ -30,8 +44,4 @@
     rgba(169, 0, 0, 0) 89%,
     rgba(158, 0, 0, 0) 100%
   );
-}
-
-.selected {
-  background: rgba(20, 85, 30, 0.5);
 }

@@ -2,7 +2,7 @@ import React from "react";
 import Coordination from "./Coordination";
 import Pawn from "../pieces/Pawn";
 import Rook from "../pieces/Rook";
-import { Color } from "../enum";
+import { Color, PieceName } from "../enum";
 import Knight from "../pieces/Knight";
 import Bishop from "../pieces/Bishop";
 import Queen from "../pieces/Queen";
@@ -18,14 +18,14 @@ import { usePieces } from "../store/usePieces";
 
 export default class Board extends React.Component {
   board: BoardFactory
-  state = { selectedPieceCoordination: null, };
+  state: { selectedPieceCoordination: Coordination | null } = { selectedPieceCoordination: null };
   colorTurn = Color.WHITE
   constructor(props: never) {
     super(props)
-    this.board = this.fromFEN('r3k2r/pppp2pp/2q5/7n/1BbNP3/2n3Q1/PPP3PP/R3K2R w KQkq - 0 1')
+    this.board = this.fromFEN('r3k2r/p1pp1ppp/Bpn5/4pq2/2b1P2b/5NP1/PPPP3P/R3K2R w KQkq - 0 1')
   }
 
-//todo: add moves to local storate , or make by the fen in router , this is would be better rather than local storage and cookies 
+  //todo: add moves to local storate , or make by the fen in router , this is would be better rather than local storage and cookies 
 
   fromFEN(fen: string): BoardFactory {
     const board = new BoardFactory(fen);
@@ -124,41 +124,49 @@ export default class Board extends React.Component {
   }
 
   private showCheckedKing(file: string, rank: number) {
+    const coordination = new Coordination(file, rank);
+    const boardCondition = usePieces.getState().pieces;
+    const king = boardCondition.get(coordination.id);
 
-    //todo: its work as expected , when we click on only on our own color pieces, must work , even if the piece is not clicked 
-    const coordination = new Coordination(file, rank)
-    const { selectedPieceCoordination } = this.state;
-    if(selectedPieceCoordination){
-      const piece = this.board.getPiece(selectedPieceCoordination)
-      const king=piece?.sameColorKingPosition(this.board.pieces)
-      if(piece?.isInCheck(this.board.pieces) && king?.id===coordination.id){
-        return 'under-check'
+    // Ensure the piece is a King of the correct color
+    if (king && king.name === PieceName.KING) {
+      // Get all pieces of the opposite color
+      const enemyPieces = Array.from(boardCondition.values()).filter(
+        piece => piece?.color !== king.color
+      );
+
+      // Check if any enemy piece can attack the King
+      for (const enemyPiece of enemyPieces) {
+        const attackedSquares = enemyPiece?.getAttackedSquares(boardCondition);
+        if (attackedSquares?.has(coordination.id)) {
+          return 'under-check';
+        }
       }
     }
 
-    return ''
+    return '';
   }
 
-  private renderPieceMoveIndicator(file: string, rank: number): string {
-    const currentBoard = new Coordination(file, rank)
-    const indicators = this.getMoveIndicators()
-
+  private renderMoveIndicator(file: string, rank: number): string {
+    const currentBoard = new Coordination(file, rank);
+    const indicators = this.getMoveIndicators();
     const { selectedPieceCoordination } = this.state;
+
     if (selectedPieceCoordination) {
-      const selected = this.board.getPiece(selectedPieceCoordination)?.coordination.id
-      if (currentBoard.id === selected) return 'selected'
+      const selected = this.board.getPiece(selectedPieceCoordination)?.coordination.id;
+      if (currentBoard.id === selected) return 'selected';
     }
 
-    if (!indicators) return ''
+    if (!indicators) return '';
     for (const indicator of indicators) {
       if (currentBoard.id === indicator) {
-        const pieceExist = this.board.pieces.get(indicator)
-        return pieceExist ? 'piece' : 'empty'
+        const pieceExist = this.board.pieces.get(indicator);
+        return pieceExist ? '' : 'empty';
       }
-
     }
-    return ''
+    return '';
   }
+
   private renderPreviousMovePositions(file: string, rank: number) {
     const history = useHistory.getState().history
     if (history.length) {
@@ -168,27 +176,44 @@ export default class Board extends React.Component {
     }
     return ''
   }
-
-  private handleMove = (file: string, rank: number) => {
-
-    const { selectedPieceCoordination } = this.state;
-    const currentCoordination = new Coordination(file, rank);
-    if (selectedPieceCoordination && this.isCurrentPositionLegalToMove(currentCoordination)) {
-      // If a piece is already selected, attempt to move it
-      const pieceActivity = new Move(currentCoordination, selectedPieceCoordination)
-      pieceActivity.move()
-      if (!pieceActivity.isTheSamePosition) this.colorTurn = this.colorTurn ? Color.WHITE : Color.BLACK
-      // Reset the selected piece coordination
-      this.setState({ selectedPieceCoordination: null });
-    } else {
-      // If no piece is selected, update the selected piece coordination
-      if (this.board.getPiece(currentCoordination)?.color === this.colorTurn) {
-        this.setState({ selectedPieceCoordination: currentCoordination });
+  private renderPieceMoveIndicator(file: string, rank: number) {
+    const currentBoard = new Coordination(file, rank);
+    const indicators = this.getMoveIndicators();
+    if (!indicators) return '';
+    for (const indicator of indicators) {
+      if (currentBoard.id === indicator) {
+        const pieceExist = this.board.pieces.get(indicator);
+        return pieceExist ? 'piece' : '';
       }
     }
-
-
+    return '';
   }
+
+  private handleMove = (file: string, rank: number) => {
+    const { selectedPieceCoordination } = this.state;
+    const currentCoordination = new Coordination(file, rank);
+      // If the same piece is clicked again, deselect it
+    if (selectedPieceCoordination && selectedPieceCoordination.id === currentCoordination.id) {
+      this.setState({ selectedPieceCoordination: null });
+      return;
+    }
+  
+    // If a piece is already selected, attempt to move it
+    if (selectedPieceCoordination && this.isCurrentPositionLegalToMove(currentCoordination)) {
+      const pieceActivity = new Move(currentCoordination, selectedPieceCoordination);
+      pieceActivity.move();
+      if (!pieceActivity.isTheSamePosition) this.colorTurn = this.colorTurn ? Color.WHITE : Color.BLACK;
+      this.setState({ selectedPieceCoordination: null });
+    } else {
+      // If no piece is selected or an invalid move is clicked, update the selected piece coordination
+      if (this.board.getPiece(currentCoordination)?.color === this.colorTurn) {
+        this.setState({ selectedPieceCoordination: currentCoordination });
+      } else {
+        this.setState({ selectedPieceCoordination: null });
+      }
+    }
+  }
+  
 
   render() {
     return (
@@ -205,20 +230,19 @@ export default class Board extends React.Component {
                     key={file + rank}
                     onClick={() => this.handleMove(file, rank)}
                     id={file + rank}
-                    className={` w-12 h-12 flex items-center justify-center font-bold  relative ${this.board.colorBoard(file, rank)} `}
+                    className={` w-12 h-12 flex items-center justify-center font-bold relative ${this.board.colorBoard(file, rank)} `}
                   >
                     <div>
                       {piece && (
                         <img
-                          //todo: the check indicator on king
-                          className={` absolute inset-0 z-10 ${this.showCheckedKing(file,rank)}`}
+                          className={` absolute inset-0 z-10 ${this.showCheckedKing(file, rank)} ${this.renderPieceMoveIndicator(file, rank)}`}
                           src={this.board.getPieceImage(piece)}
                           alt={`${piece.name}_${piece.color}`}
                         />
                       )}
                     </div>
                     <div
-                      className={`absolute inset-0 z-2 ${this.renderPieceMoveIndicator(file, rank)} ${this.renderPreviousMovePositions(file, rank)}  `}
+                      className={`absolute inset-0 z-2  ${this.renderMoveIndicator(file, rank)} ${this.renderPreviousMovePositions(file, rank)}  `}
                     >
                     </div>
                   </div>

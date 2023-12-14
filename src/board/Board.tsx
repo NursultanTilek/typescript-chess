@@ -22,7 +22,7 @@ export default class Board extends React.Component {
   colorTurn = Color.WHITE
   constructor(props: never) {
     super(props)
-    this.board = this.fromFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    this.board = this.fromFEN('r3k2r/pppp2pp/2q5/7n/1BbNP3/2n3Q1/PPP3PP/R3K2R w KQkq - 0 1')
   }
 
 //todo: add moves to local storate , or make by the fen in router , this is would be better rather than local storage and cookies 

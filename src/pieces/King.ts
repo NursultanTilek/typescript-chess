@@ -3,12 +3,17 @@ import Coordination from '../board/Coordination';
 import CoordinationShift from '../board/CoordinationShift';
 import { Color, PieceName } from '../enum';
 import { usePieces } from '../store/usePieces';
+import { CoordinationId, PieceType } from '../types';
 import { Piece } from './Piece';
 
 export default class King extends Piece {
   public name = PieceName.KING;
   constructor(coordination: Coordination, color: Color) {
     super(coordination, color);
+  }
+
+  override getPieceMoves(): CoordinationShift[] {
+    return [...this.regularKingMoves, ...this.castlingMoves()];
   }
   get regularKingMoves(): CoordinationShift[] {
     const result: CoordinationShift[] = [];
@@ -23,96 +28,84 @@ export default class King extends Piece {
     return result;
   }
 
-  get castlingMoves(): CoordinationShift[] {
+  public castlingMoves() {
     const result: CoordinationShift[] = [];
-    const boardCondition = usePieces.getState().pieces;
     const rookRank = this.color ? 8 : 1;
-    let isCoordinationBetweenEmpty = true;
+
+    // Define the file indices for short and long castling
+    const shortCastlingFiles = [5, 6, 7];
+    const longCastlingFiles = [1, 2, 3, 4];
+
     // Check for short castling
-    for (let i = 5; i < 7; i++) {
-      const coordinationBetween = new Coordination(
-        BoardFactory.files[i],
-        this.color === Color.WHITE ? 1 : 8
-      );
-      if (!this.isSquareEmpty(boardCondition, coordinationBetween)) {
-        isCoordinationBetweenEmpty = false;
-        break;
-      } else isCoordinationBetweenEmpty = true;
-    }
-    const shortCastleRook = boardCondition.get(
-      `${BoardFactory.files[7]}${rookRank}`
-    );
-    let isItRook = shortCastleRook?.name === PieceName.ROOK;
-    if (
-      isItRook &&
-      shortCastleRook?.isPieceMoved === false &&
-      !this.isPieceMoved &&
-      isCoordinationBetweenEmpty
-    ) {
+    if (this.canCastle(shortCastlingFiles, rookRank)) {
       result.push(new CoordinationShift(2, 0));
     }
     // Check for long castling
-    for (let i = 1; i < 4; i++) {
-      const coordinationBetween = new Coordination(
-        BoardFactory.files[i],
-        this.color == Color.WHITE ? 1 : 8
-      );
-      if (!this.isSquareEmpty(boardCondition, coordinationBetween)) {
-        isCoordinationBetweenEmpty = false;
-        break;
-      } else isCoordinationBetweenEmpty = true;
-    }
-
-    const longCastleRook = boardCondition.get(
-      `${BoardFactory.files[0]}${rookRank}`
-    );
-    isItRook = longCastleRook?.name === PieceName.ROOK;
-
-    if (
-      isItRook &&
-      !longCastleRook?.isPieceMoved &&
-      !this.isPieceMoved &&
-      isCoordinationBetweenEmpty
-    ) {
+    if (this.canCastle(longCastlingFiles, rookRank)) {
       result.push(new CoordinationShift(-2, 0));
     }
     return result;
   }
 
-  override getPieceMoves(): CoordinationShift[] {
-    return [...this.regularKingMoves, ...this.castlingMoves];
+  private canCastle(files: number[], rookRank: number): boolean {
+    const boardCondition = usePieces.getState().pieces;
+
+    for (let i = files[0]; i < files.length; i++) {
+      const coordinationBetween = new Coordination(
+        BoardFactory.files[i],
+        rookRank
+      );
+      if (
+        this.isSquareEmpty(boardCondition, coordinationBetween) &&
+        !this.isSquareAttackedByEnemy(
+          coordinationBetween,
+          this.oppositeColor(this.color),
+          boardCondition
+        ) &&
+        !this.isInCheck(boardCondition)
+      ) {
+        const rookFile =
+          files.length === 3 ? BoardFactory.files[7] : BoardFactory.files[0];
+        const rook = boardCondition.get(`${rookFile}${rookRank}`);
+        return (
+          rook?.name === PieceName.ROOK &&
+          !rook.isPieceMoved &&
+          !this.isPieceMoved
+        );
+      }
+    }
+    return false
   }
 
-  // override isMoveSafe(coordination: Coordination) {
-  //   const boardCondition=usePieces.getState().pieces
-  //   const tempBoard = new Map(boardCondition);
-  //   // Simulating the move
-  //   tempBoard.delete(this.coordination.id);
-  //   const king = new King(coordination, this.color);
-  //   tempBoard.set(coordination.id, king);
-  //   // Check if the king would be in check after the move
-  //   const isInCheck = this.isSquareAttackedByEnemy(
-  //     coordination,
-  //     this.oppositeColor(this.color),
-  //     tempBoard
-  //   );
-
-  //   // Returning the opposite of isInCheck because if the king is in check, the move is not safe
-
-  //   return  !isInCheck;
-  // }
-
-
+  override getAttackedSquares(
+    boardCondition: Map<CoordinationId, PieceType>
+  ): Set<CoordinationId> {
+    const pieceAttacks: CoordinationShift[] = this.regularKingMoves;
+    const result: Set<CoordinationId> = new Set<CoordinationId>();
+    for (const pieceAttack of pieceAttacks) {
+      if (this.coordination.canShift(pieceAttack)) {
+        const shiftedCoordinates: Coordination =
+          this.coordination.shift(pieceAttack);
+        if (
+          this.isSquareAvailableForAttack(shiftedCoordinates, boardCondition)
+        ) {
+          result.add(shiftedCoordinates.id);
+        }
+      }
+    }
+    return result;
+  }
   override isSquareAvailableForMove(coordination: Coordination): boolean {
     const boardCondition = usePieces.getState().pieces;
-    const isCanMove = super.isSquareAvailableForMove(coordination,boardCondition);
+    const isCanMove = super.isSquareAvailableForMove(
+      coordination,
+      boardCondition
+    );
     if (!isCanMove) return false;
-    return (
-      !this.isSquareAttackedByEnemy(
-        coordination,
-        this.oppositeColor(this.color),
-        boardCondition
-      ) 
+    return !this.isSquareAttackedByEnemy(
+      coordination,
+      this.oppositeColor(this.color),
+      boardCondition
     );
   }
 }

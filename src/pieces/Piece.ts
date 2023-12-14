@@ -65,20 +65,18 @@ export abstract class Piece {
   public isMoveSafe(newCoordination: Coordination) {
     const boardCondition = usePieces.getState().pieces;
     const tempBoard = new Map(boardCondition);
-            // Simulating the move
-      tempBoard.delete(this.coordination.id);
-      const pieceName = this.name;
-      const color = this.color;
-      const newPiece = BoardFactory.setupPiecePosition(
-        newCoordination,
-        pieceName,
-        color
-      );
-      tempBoard.set(newCoordination.id, newPiece);
+    // Simulating the move
+    tempBoard.delete(this.coordination.id);
+    const pieceName = this.name;
+    const color = this.color;
+    const newPiece = BoardFactory.setupPiecePosition(
+      newCoordination,
+      pieceName,
+      color
+    );
+    tempBoard.set(newCoordination.id, newPiece);
 
-      return !this.isInCheck(tempBoard)
-
-  
+    return !this.isInCheck(tempBoard);
   }
 
   private coordinationAvailablityUttils(move: CoordinationShift) {
@@ -129,10 +127,6 @@ export abstract class Piece {
     return result;
   }
 
-  //TODO 1)CHECKING ENEMY PIECE ATTACKING THE KING, WHICH PARALYZED PIECES WHICH CAN BLOCK THE ATTACK OR CAPTURE THE ATTACKING PIECE,THIS IS LOOK LIKE A GRAPH, WHERE YOU ARE SEARCHING THE SHORTEST PATH TO REACH TO KING
-  //TODO MENTION DOUBLE ATTACK ,WHERE ATTACKED KING MAKE THE MOVE,OR IT MAYBE RESOLVED BY THE FIRST ONE
-  //TODO 2) DO NOT FORGET ABOUT DISCOVERY ATTACK TO THE OWN KING , AFTER YOU DID THIS , SOLVE THIS LIKE i DID ON KING CLASS LIKE THIS FUNCTION isMoveSafe()
-
   //Checking a square where king can not move
   protected isSquareAttackedByEnemy(
     coordination: Coordination,
@@ -181,5 +175,8 @@ export abstract class Piece {
     if (coordination && boarCondtion) return true;
     return false;
   }
-  protected abstract getPieceMoves(): CoordinationShift[];
+  abstract getPieceMoves(): CoordinationShift[];
+  castlingMoves() {
+    return this.getPieceMoves();
+  }
 }

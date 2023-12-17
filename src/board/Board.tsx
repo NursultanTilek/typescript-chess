@@ -15,18 +15,19 @@ import { usePieces } from "../store/usePieces";
 
 
 
+interface BoardProps {
+  colorTurn: Color
+  changeColorTurn: () => {}
+  changeBoardCondition:()=>{}
+}
 
 export default class Board extends React.Component {
   board: BoardFactory
   state: { selectedPieceCoordination: Coordination | null } = { selectedPieceCoordination: null };
-  colorTurn = Color.WHITE
-  constructor(props: never) {
+  constructor(props: BoardProps) {
     super(props)
-    this.board = this.fromFEN('r3k2r/p1pp1ppp/Bpn5/4pq2/2b1P2b/5NP1/PPPP3P/R3K2R w KQkq - 0 1')
+    this.board = this.fromFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
   }
-
-  //todo: add moves to local storate , or make by the fen in router , this is would be better rather than local storage and cookies 
-
   fromFEN(fen: string): BoardFactory {
     const board = new BoardFactory(fen);
     const parts = fen.split(" ");
@@ -53,7 +54,7 @@ export default class Board extends React.Component {
         }
       }
     }
-
+    usePieces.getState().setPieces(board.pieces)
     return board;
   }
 
@@ -62,7 +63,6 @@ export default class Board extends React.Component {
     switch (fenChar) {
       case 'p':
         return new Pawn(coordination, Color.BLACK);
-
       case 'P':
         return new Pawn(coordination, Color.WHITE);
 
@@ -104,7 +104,7 @@ export default class Board extends React.Component {
   private getMoveIndicators() {
     const { selectedPieceCoordination } = this.state;
     if (selectedPieceCoordination) {
-      if (this.board.getPiece(selectedPieceCoordination)?.color !== this.colorTurn) return
+      if (this.board.getPiece(selectedPieceCoordination)?.color !== this.props.colorTurn) return
       else {
         const indicators = this.board.getPiece(selectedPieceCoordination)?.getAvailableMoves()
         return indicators
@@ -125,19 +125,19 @@ export default class Board extends React.Component {
 
   private showCheckedKing(file: string, rank: number) {
     const coordination = new Coordination(file, rank);
-    const boardCondition = usePieces.getState().pieces;
-    const king = boardCondition.get(coordination.id);
+    // const boardCondition = usePieces.getState().pieces;
+    const king = this.board.pieces.get(coordination.id);
 
     // Ensure the piece is a King of the correct color
     if (king && king.name === PieceName.KING) {
       // Get all pieces of the opposite color
-      const enemyPieces = Array.from(boardCondition.values()).filter(
+      const enemyPieces = Array.from(this.board.pieces.values()).filter(
         piece => piece?.color !== king.color
       );
 
       // Check if any enemy piece can attack the King
       for (const enemyPiece of enemyPieces) {
-        const attackedSquares = enemyPiece?.getAttackedSquares(boardCondition);
+        const attackedSquares = enemyPiece?.getAttackedSquares(this.board.pieces);
         if (attackedSquares?.has(coordination.id)) {
           return 'under-check';
         }
@@ -192,28 +192,33 @@ export default class Board extends React.Component {
   private handleMove = (file: string, rank: number) => {
     const { selectedPieceCoordination } = this.state;
     const currentCoordination = new Coordination(file, rank);
-      // If the same piece is clicked again, deselect it
+    // If the same piece is clicked again, deselect it
     if (selectedPieceCoordination && selectedPieceCoordination.id === currentCoordination.id) {
       this.setState({ selectedPieceCoordination: null });
       return;
     }
-  
+
     // If a piece is already selected, attempt to move it
     if (selectedPieceCoordination && this.isCurrentPositionLegalToMove(currentCoordination)) {
       const pieceActivity = new Move(currentCoordination, selectedPieceCoordination);
       pieceActivity.move();
-      if (!pieceActivity.isTheSamePosition) this.colorTurn = this.colorTurn ? Color.WHITE : Color.BLACK;
+      if (!pieceActivity.isTheSamePosition){
+        this.props?.changeColorTurn()
+        this.props.changeBoardCondition(this.board.pieces)
+    
+      } 
+        
       this.setState({ selectedPieceCoordination: null });
     } else {
       // If no piece is selected or an invalid move is clicked, update the selected piece coordination
-      if (this.board.getPiece(currentCoordination)?.color === this.colorTurn) {
+      if (this.board.getPiece(currentCoordination)?.color === this.props.colorTurn) {
         this.setState({ selectedPieceCoordination: currentCoordination });
       } else {
         this.setState({ selectedPieceCoordination: null });
       }
     }
   }
-  
+
 
   render() {
     return (

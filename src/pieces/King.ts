@@ -56,29 +56,7 @@ export default class King extends Piece {
         BoardFactory.files[file],
         rookRank
       );
-      console.log(
-        '🚀 ~ file: King.ts:63 ~ King ~ canCastle ~ this.isSquareEmpty(boardCondition, coordinationBetween) :',
-        this.isSquareEmpty(boardCondition, coordinationBetween),
-        coordinationBetween.id
-      );
-      console.log(
-        '🚀 ~ file: King.ts:72 ~ King ~ canCastle ~  !this.isSquareAttackedByEnemy(  )',
-        !this.isSquareAttackedByEnemy(
-          coordinationBetween,
-          this.oppositeColor(this.color),
-          boardCondition
-        )
-      );
-      console.log(
-        '🚀 ~ file: King.ts:72 ~ King ~ canCastle ~ !this.isInCheck(boardCondition):',
-        !this.isInCheck(boardCondition),
-        coordinationBetween.id
-      );
-      console.log(
-        '🚀 ~ file: King.ts:74 ~ King ~ canCastle ~  this.isMoveSafe(coordinationBetween):',
-        this.isMoveSafe(coordinationBetween),
-        coordinationBetween.id
-      );
+           
 
       if (
         this.isSquareEmpty(boardCondition, coordinationBetween) &&
@@ -87,8 +65,7 @@ export default class King extends Piece {
           this.oppositeColor(this.color),
           boardCondition
         ) &&
-        !this.isInCheck(boardCondition) &&
-        this.isMoveSafe(coordinationBetween)
+        !this.isInCheck(boardCondition)
       ) {
         const rookFile =
           files.length === 3 ? BoardFactory.files[7] : BoardFactory.files[0];

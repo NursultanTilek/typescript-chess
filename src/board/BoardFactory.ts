@@ -26,14 +26,15 @@ import King from '../pieces/King';
 /** */
 
 class BoardFactory {
-  startingFen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  pieces = new Map<CoordinationId, PieceType>();
+  public startingFen: string =
+    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  public pieces = new Map<CoordinationId, PieceType>();
 
   static files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   static ranks = [8, 7, 6, 5, 4, 3, 2, 1];
 
   constructor(fen: string) {
-    this.startingFen = fen ? fen : this.startingFen;
+    this.startingFen = (fen && fen !== '') ? fen : this.startingFen;
   }
 
   static setupPiecePosition(
@@ -61,6 +62,7 @@ class BoardFactory {
         return new King(coordination, color);
     }
   }
+ 
 
   setPiece(coordination: Coordination, piece: Piece): void {
     this.pieces.set(coordination.id, piece);

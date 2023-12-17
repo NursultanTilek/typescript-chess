@@ -14,9 +14,7 @@ export enum Color {
 
 export enum GameState {
   ONGOING,
-  // CHECK_TO_WHITE,
-  // CHECK_TO_BLACK,
+  WHITE_CHECKMATE,
+  BLACK_CHECKMATE,
   STALEMATE,
-  MATE_TO_WHITE,
-  MATE_TO_BLACK
 }

@@ -56,8 +56,6 @@ export default class King extends Piece {
         BoardFactory.files[file],
         rookRank
       );
-           
-
       if (
         this.isSquareEmpty(boardCondition, coordinationBetween) &&
         !this.isSquareAttackedByEnemy(

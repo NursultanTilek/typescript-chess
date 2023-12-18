@@ -12,19 +12,20 @@ import BoardFactory from "./BoardFactory";
 import { Move } from "./Move";
 import { useHistory } from "../store/useHistory";
 import { usePieces } from "../store/usePieces";
+import { CoordinationId, PieceType } from "../types";
 
 
 
 interface BoardProps {
-  colorTurn: Color
-  changeColorTurn: () => {}
-  changeBoardCondition:()=>{}
+  colorTurn: Color,
+  changeColorTurn: () => void,
+  changeBoardCondition:(boardCondition:Map<CoordinationId,PieceType>)=>void
 }
 
-export default class Board extends React.Component {
+export default class Board extends React.Component<BoardProps> {
   board: BoardFactory
   state: { selectedPieceCoordination: Coordination | null } = { selectedPieceCoordination: null };
-  constructor(props: BoardProps) {
+  constructor(props:BoardProps) {
     super(props)
     this.board = this.fromFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
   }
@@ -197,14 +198,13 @@ export default class Board extends React.Component {
       this.setState({ selectedPieceCoordination: null });
       return;
     }
-
     // If a piece is already selected, attempt to move it
     if (selectedPieceCoordination && this.isCurrentPositionLegalToMove(currentCoordination)) {
       const pieceActivity = new Move(currentCoordination, selectedPieceCoordination);
       pieceActivity.move();
       if (!pieceActivity.isTheSamePosition){
-        this.props?.changeColorTurn()
-        this.props.changeBoardCondition(this.board.pieces)
+        this.props?.changeColorTurn!()
+        this.props.changeBoardCondition!(this.board.pieces)
     
       } 
         

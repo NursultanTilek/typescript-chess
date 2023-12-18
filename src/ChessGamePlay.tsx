@@ -7,7 +7,7 @@ import { CoordinationId, PieceType } from "./types";
 import GameStatePopUp from "./gameState/GameStatePopUp";
 // import ClockContainer from "./clock/ClockContainer"
 
-type gameStateType = {
+type GameStateType = {
     colorTurn: Color,
     gameState: GameState,
     boardCondition: Map<CoordinationId, PieceType>
@@ -21,11 +21,6 @@ export default class ChessGamePlay extends React.Component {
     constructor(board: Board) {
         super(board)
     }
-
-
-
-
-
 
     gameLoop() {
         let colorToMove: Color = this.state.colorTurn;
@@ -58,7 +53,7 @@ export default class ChessGamePlay extends React.Component {
         this.setState({boardCondition:newBoardCondition})
     }
 
-    componentDidUpdate(prevProps: gameStateType, prevState: gameStateType) {
+    componentDidUpdate(prevProps: GameStateType, prevState: GameStateType) {
         // Check if colorTurn or boardCondition has changed
         console.log(this.state.boardCondition)
         if (this.state.colorTurn !== prevState.colorTurn || this.state.boardCondition !== prevState.boardCondition) {
@@ -73,14 +68,15 @@ export default class ChessGamePlay extends React.Component {
             <>
                 { this.state.gameState !== GameState.ONGOING && <GameStatePopUp gameState={this.state.gameState} />}
                 <div className="flex flex-wrap justify-center p-6">
-                    <Board colorTurn={this.state.colorTurn} 
+                    <Board 
+                    colorTurn={this.state.colorTurn} 
                     changeColorTurn={this.changeColorTurn}
                     changeBoardCondition={this.changeBoardCondition}
-                    
                     />
                 </div>
             </>
         );
+
     }
 }
 

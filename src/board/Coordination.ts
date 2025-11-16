@@ -11,8 +11,20 @@ export default class Coordination {
     constructor(file:string,rank:number) {
         this.file=file
         this.rank=rank
-   
+
     }
+
+    /**
+     * Create Coordination from ID string (e.g., "E4")
+     * Can accept either a CoordinationId string or file and rank separately
+     */
+    static fromId(id: CoordinationId): Coordination {
+        if (!id) throw new Error("Invalid coordination ID");
+        const file = id[0];
+        const rank = parseInt(id.substring(1));
+        return new Coordination(file, rank);
+    }
+
     get id(): CoordinationId {
         return `${this.file}${this.rank}`;
     }

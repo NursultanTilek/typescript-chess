@@ -30,7 +30,8 @@ export default class ChessGamePlay extends React.Component {
     public state: GameStateType = {
         colorTurn: Color.WHITE,
         gameState: GameState.ONGOING,
-        boardCondition: usePieces.getState().pieces,
+        // CRITICAL: Create new Map to avoid reference sharing with global store
+        boardCondition: new Map(usePieces.getState().pieces),
         aiEnabled: true,
         aiDifficulty: Difficulty.MEDIUM,
         playerColor: Color.WHITE,  // Player plays white by default, AI plays black

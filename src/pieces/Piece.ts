@@ -4,6 +4,7 @@ import CoordinationShift from '../board/CoordinationShift';
 import { Color, PieceName } from '../enum';
 import { usePieces } from '../store/usePieces';
 import { CoordinationId, PieceType } from '../types';
+import { deepCloneBoard } from '../utils/boardClone';
 // import { usePieces } from "../store/usePieces";
 // import { CoordinationId,PieceType } from "../types";
 export abstract class Piece {
@@ -64,7 +65,10 @@ export abstract class Piece {
 
   public isMoveSafe(newCoordination: Coordination) {
     const boardCondition = usePieces.getState().pieces;
-    const tempBoard = new Map(boardCondition);
+    // CRITICAL: Deep clone the board to prevent corrupting the real board state
+    // AI calculation must use completely separate piece objects
+    const tempBoard = deepCloneBoard(boardCondition);
+
     // Simulating the move
     tempBoard.delete(this.coordination.id);
     const pieceName = this.name;
@@ -74,8 +78,10 @@ export abstract class Piece {
       pieceName,
       color
     );
-    tempBoard.set(newCoordination.id, newPiece);
-   
+    if (newPiece) {
+      newPiece.isPieceMoved = true; // Mark as moved for castling checks
+      tempBoard.set(newCoordination.id, newPiece);
+    }
 
     return !this.isInCheck(tempBoard);
   }

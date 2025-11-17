@@ -17,6 +17,7 @@ import { evaluatePosition as evaluate, getPieceValue } from "./evaluation";
 import { AIMove, TranspositionEntry, SearchConfig } from "./types";
 import { GameStateChecker } from "../gameState/GameStateChecker";
 import { usePieces } from "../store/usePieces";
+import { deepCloneBoard } from "../utils/boardClone";
 
 /**
  * Transposition table for memoizing position evaluations
@@ -103,21 +104,25 @@ function makeMove(
   from: CoordinationId,
   to: CoordinationId
 ): Map<CoordinationId, PieceType> {
+  // CRITICAL: Deep clone to prevent corrupting the original board state
+  // Search must work with completely independent piece objects
+  const clonedPieces = deepCloneBoard(pieces);
+
   // Set the temporary board state
   const originalPieces = usePieces.getState().pieces;
-  usePieces.getState().setPieces(new Map(pieces));
+  usePieces.getState().setPieces(clonedPieces);
 
   try {
     if (!from || !to) {
-      return pieces;
+      return clonedPieces;
     }
 
     const move = new Move(Coordination.fromId(to), Coordination.fromId(from));
     move.move();
 
     // Get the updated pieces from the store
-    const newPieces = new Map(usePieces.getState().pieces) as Map<CoordinationId, PieceType>;
-    return newPieces;
+    const newPieces = usePieces.getState().pieces;
+    return new Map(newPieces);
   } finally {
     // Restore original board state
     usePieces.getState().setPieces(originalPieces);

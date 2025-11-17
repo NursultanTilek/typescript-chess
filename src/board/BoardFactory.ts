@@ -66,7 +66,8 @@ class BoardFactory {
 
   setPiece(coordination: Coordination, piece: Piece): void {
     this.pieces.set(coordination.id, piece);
-    usePieces.getState().setPieces(this.pieces);
+    // Don't update global store during initialization - let Board.fromFEN do it once
+    // usePieces.getState().setPieces(this.pieces);
   }
   getPiece(coordination: Coordination) {
     const piece = this.pieces.get(coordination?.id);

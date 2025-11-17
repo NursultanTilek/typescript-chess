@@ -55,7 +55,8 @@ export default class Board extends React.Component<BoardProps> {
         }
       }
     }
-    usePieces.getState().setPieces(board.pieces)
+    // CRITICAL: Create a new Map to avoid reference sharing
+    usePieces.getState().setPieces(new Map(board.pieces))
     return board;
   }
 

@@ -16,6 +16,7 @@ import { mctsSearch, DEFAULT_MCTS_CONFIG, MCTSConfig } from "./mcts";
 import { evaluatePosition } from "./evaluation";
 import { AIMove, Difficulty, SearchConfig } from "./types";
 import { usePieces } from "../store/usePieces";
+import { debug } from "../utils/debug";
 
 /**
  * Main Chess AI Engine
@@ -202,13 +203,13 @@ export class ChessAI {
     pieces: Map<CoordinationId, PieceType>,
     color: Color
   ): AIMove | null {
-    console.log(`AI (${Difficulty[this.difficulty]}) thinking...`);
+    debug.log(`AI (${Difficulty[this.difficulty]}) thinking...`);
 
     // Try opening book first (if enabled and early in game)
     if (this.useOpeningBook && this.moveHistory.length < 20) {
       const openingMove = getOpeningBookMove(this.moveHistory, pieces, color);
       if (openingMove) {
-        console.log("Using opening book move:", openingMove);
+        debug.log("Using opening book move:", openingMove);
         this.addMoveToHistory(openingMove.from, openingMove.to);
         return {
           from: openingMove.from,
@@ -324,7 +325,7 @@ export class ChessAI {
   ): AIMove | null {
     // Occasionally make a random move to simulate human error
     if (this.shouldMakeError()) {
-      console.log("AI making an intentional error (difficulty simulation)");
+      debug.log("AI making an intentional error (difficulty simulation)");
       return this.getRandomMove(pieces, color);
     }
 

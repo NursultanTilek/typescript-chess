@@ -13,7 +13,6 @@ import blackKing from '../../src/assets/images/king_b.png';
 
 import { Color, PieceName } from '../enum';
 import { CoordinationId, PieceType } from '../types';
-import { usePieces } from '../store/usePieces';
 import { Piece } from '../pieces/Piece';
 import Coordination from './Coordination';
 import Pawn from '../pieces/Pawn';

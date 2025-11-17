@@ -12,6 +12,7 @@ import { Difficulty } from "./ai/types";
 import Coordination from "./board/Coordination";
 import { Move } from "./board/Move";
 import { deepCloneBoard } from "./utils/boardClone";
+import { debug } from "./utils/debug";
 // import ClockContainer from "./clock/ClockContainer"
 
 type GameStateType = {
@@ -79,7 +80,7 @@ export default class ChessGamePlay extends React.Component {
 
     componentDidUpdate(_prevProps: GameStateType, prevState: GameStateType) {
         // Check if colorTurn or boardCondition has changed
-        console.log(this.state.boardCondition)
+        debug.log(this.state.boardCondition)
         if (this.state.colorTurn !== prevState.colorTurn || this.state.boardCondition !== prevState.boardCondition) {
             // If so, run the game loop
             this.gameLoop();
@@ -120,14 +121,14 @@ export default class ChessGamePlay extends React.Component {
             const aiMove = this.chessAI.getMove(currentPieces, aiColor);
 
             if (aiMove && aiMove.from && aiMove.to) {
-                console.log(`AI plays: ${aiMove.from} -> ${aiMove.to}`);
+                debug.log(`AI plays: ${aiMove.from} -> ${aiMove.to}`);
 
                 // Check if piece exists at source
                 const piece = currentPieces.get(aiMove.from);
-                console.log(`Piece at ${aiMove.from}:`, piece?.constructor.name, piece?.color);
+                debug.log(`Piece at ${aiMove.from}:`, piece?.constructor.name, piece?.color);
 
                 if (!piece) {
-                    console.error(`ERROR: No piece at ${aiMove.from}`);
+                    debug.error(`ERROR: No piece at ${aiMove.from}`);
                     this.setState({
                         aiInfo: {
                             ...this.state.aiInfo,
@@ -139,7 +140,7 @@ export default class ChessGamePlay extends React.Component {
 
                 // Check if piece is the right color
                 if (piece.color !== aiColor) {
-                    console.error(`ERROR: Piece at ${aiMove.from} is ${piece.color}, but AI is ${aiColor}`);
+                    debug.error(`ERROR: Piece at ${aiMove.from} is ${piece.color}, but AI is ${aiColor}`);
                     this.setState({
                         aiInfo: {
                             ...this.state.aiInfo,
@@ -155,15 +156,15 @@ export default class ChessGamePlay extends React.Component {
                     Coordination.fromId(aiMove.from)
                 );
 
-                console.log(`Executing move from ${aiMove.from} to ${aiMove.to}`);
-                console.log(`Move validation - isTheSamePosition:`, move.isTheSamePosition);
-                console.log(`Move validation - piece available moves:`, Array.from(piece.getAvailableMoves()));
+                debug.log(`Executing move from ${aiMove.from} to ${aiMove.to}`);
+                debug.log(`Move validation - isTheSamePosition:`, move.isTheSamePosition);
+                debug.log(`Move validation - piece available moves:`, Array.from(piece.getAvailableMoves()));
 
                 move.move();
 
                 const newPieces = usePieces.getState().pieces;
-                console.log(`Move executed. Piece now at:`, newPieces.get(aiMove.to)?.constructor.name);
-                console.log(`Piece at source ${aiMove.from}:`, newPieces.get(aiMove.from)?.constructor.name);
+                debug.log(`Move executed. Piece now at:`, newPieces.get(aiMove.to)?.constructor.name);
+                debug.log(`Piece at source ${aiMove.from}:`, newPieces.get(aiMove.from)?.constructor.name);
 
                 // Update AI info with move details
                 const moveNotation = `${aiMove.from}-${aiMove.to}`;
@@ -187,17 +188,18 @@ export default class ChessGamePlay extends React.Component {
                 this.changeColorTurn();
 
                 // Debug: Log all pieces and their coordinates to verify consistency
-                console.log('=== Board State After AI Move ===');
+                debug.log('=== Board State After AI Move ===');
                 for (const [key, piece] of newPieces.entries()) {
+                    if (!piece) continue; // Skip if piece is undefined
                     const coordMatch = piece.coordination.id === key;
                     if (!coordMatch) {
-                        console.error(`MISMATCH: Piece at ${key} has coordination ${piece.coordination.id}`);
+                        debug.error(`MISMATCH: Piece at ${key} has coordination ${piece.coordination.id}`);
                     }
                 }
 
                 this.changeBoardCondition(new Map(newPieces));
             } else {
-                console.log("AI has no legal moves");
+                debug.log("AI has no legal moves");
                 this.setState({
                     aiInfo: {
                         ...this.state.aiInfo,
@@ -206,7 +208,7 @@ export default class ChessGamePlay extends React.Component {
                 });
             }
         } catch (error) {
-            console.error("AI move error:", error);
+            debug.critical("AI move error:", error);
             this.setState({
                 aiInfo: {
                     ...this.state.aiInfo,

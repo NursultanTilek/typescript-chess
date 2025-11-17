@@ -12,6 +12,8 @@ import { Color } from "../enum";
 import { CoordinationId, PieceType } from "../types";
 import { findBestMove, DEFAULT_SEARCH_CONFIG } from "./search";
 import { getOpeningBookMove, moveToNotation } from "./openingBook";
+import { mctsSearch, DEFAULT_MCTS_CONFIG, MCTSConfig } from "./mcts";
+import { evaluatePosition } from "./evaluation";
 import { AIMove, Difficulty, SearchConfig } from "./types";
 import { usePieces } from "../store/usePieces";
 
@@ -22,6 +24,7 @@ export class ChessAI {
   private difficulty: Difficulty;
   private moveHistory: string[] = [];
   private useOpeningBook: boolean = true;
+  private useMCTS: boolean = true; // Use MCTS by default (AlphaZero-style)
 
   constructor(difficulty: Difficulty = Difficulty.MEDIUM) {
     this.difficulty = difficulty;
@@ -49,6 +52,20 @@ export class ChessAI {
   }
 
   /**
+   * Enable or disable MCTS (Monte Carlo Tree Search)
+   */
+  setUseMCTS(use: boolean): void {
+    this.useMCTS = use;
+  }
+
+  /**
+   * Check if MCTS is enabled
+   */
+  isUsingMCTS(): boolean {
+    return this.useMCTS;
+  }
+
+  /**
    * Add a move to the history (for opening book)
    */
   addMoveToHistory(from: CoordinationId, to: CoordinationId): void {
@@ -60,6 +77,58 @@ export class ChessAI {
    */
   clearHistory(): void {
     this.moveHistory = [];
+  }
+
+  /**
+   * Get MCTS configuration based on difficulty
+   */
+  private getMCTSConfig(): MCTSConfig {
+    switch (this.difficulty) {
+      case Difficulty.BEGINNER:
+        return {
+          iterations: 100,
+          explorationParam: Math.sqrt(2),
+          timeLimitMs: 500,
+        };
+
+      case Difficulty.EASY:
+        return {
+          iterations: 300,
+          explorationParam: Math.sqrt(2),
+          timeLimitMs: 1000,
+        };
+
+      case Difficulty.MEDIUM:
+        return {
+          iterations: 500,
+          explorationParam: Math.sqrt(2),
+          timeLimitMs: 2000,
+        };
+
+      case Difficulty.HARD:
+        return {
+          iterations: 800,
+          explorationParam: Math.sqrt(2),
+          timeLimitMs: 3000,
+        };
+
+      case Difficulty.EXPERT:
+        return {
+          iterations: 1200,
+          explorationParam: Math.sqrt(2),
+          timeLimitMs: 5000,
+        };
+
+      case Difficulty.MASTER:
+        return {
+          iterations: 2000,
+          explorationParam: Math.sqrt(2),
+          timeLimitMs: 8000,
+        };
+
+      default:
+        return DEFAULT_MCTS_CONFIG;
+    }
   }
 
   /**
@@ -152,15 +221,41 @@ export class ChessAI {
       }
     }
 
-    // Use search algorithm
-    const config = this.getSearchConfig();
-    const move = findBestMove(pieces, color, config);
+    // Use MCTS or traditional search based on settings
+    if (this.useMCTS) {
+      // Use Monte Carlo Tree Search (AlphaZero-style)
+      const startTime = Date.now();
+      const mctsConfig = this.getMCTSConfig();
+      const mctsMove = mctsSearch(pieces, color, mctsConfig);
 
-    if (move) {
-      this.addMoveToHistory(move.from, move.to);
+      if (mctsMove) {
+        const elapsed = Date.now() - startTime;
+        const score = evaluatePosition(pieces, color);
+
+        this.addMoveToHistory(mctsMove.from, mctsMove.to);
+
+        return {
+          from: mctsMove.from,
+          to: mctsMove.to,
+          score: score,
+          depth: Math.floor(Math.log2(mctsMove.visits + 1)), // Approximate depth from visits
+          timeMs: elapsed,
+          openingBook: false,
+        };
+      }
+
+      return null;
+    } else {
+      // Use traditional minimax search
+      const config = this.getSearchConfig();
+      const move = findBestMove(pieces, color, config);
+
+      if (move) {
+        this.addMoveToHistory(move.from, move.to);
+      }
+
+      return move;
     }
-
-    return move;
   }
 
   /**

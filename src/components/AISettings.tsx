@@ -5,17 +5,20 @@
 
 import React from "react";
 import { Difficulty } from "../ai/types";
+import { Color } from "../enum";
 
 interface AISettingsProps {
   aiEnabled: boolean;
   difficulty: Difficulty;
+  playerColor: Color;
   onAIEnabledChange: (enabled: boolean) => void;
   onDifficultyChange: (difficulty: Difficulty) => void;
+  onPlayerColorChange: (color: Color) => void;
 }
 
 export class AISettings extends React.Component<AISettingsProps> {
   render() {
-    const { aiEnabled, difficulty, onAIEnabledChange, onDifficultyChange } =
+    const { aiEnabled, difficulty, playerColor, onAIEnabledChange, onDifficultyChange, onPlayerColorChange } =
       this.props;
 
     return (
@@ -31,6 +34,19 @@ export class AISettings extends React.Component<AISettingsProps> {
             />
             <span className="text-sm font-medium">AI Opponent</span>
           </label>
+
+          {/* Player Color Selection */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-400">Play as:</label>
+            <select
+              value={playerColor}
+              onChange={(e) => onPlayerColorChange(parseInt(e.target.value) as Color)}
+              className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded border border-gray-600 focus:outline-none focus:border-blue-500 cursor-pointer"
+            >
+              <option value={Color.WHITE}>⚪ White</option>
+              <option value={Color.BLACK}>⚫ Black</option>
+            </select>
+          </div>
 
           {/* Difficulty Selection */}
           {aiEnabled && (

@@ -19,6 +19,7 @@ type GameStateType = {
     boardCondition: Map<CoordinationId, PieceType>,
     aiEnabled: boolean,
     aiDifficulty: Difficulty,
+    playerColor: Color,  // Color the human player plays
     aiInfo: AIInfo
 }
 
@@ -32,6 +33,7 @@ export default class ChessGamePlay extends React.Component {
         boardCondition: usePieces.getState().pieces,
         aiEnabled: true,
         aiDifficulty: Difficulty.MEDIUM,
+        playerColor: Color.WHITE,  // Player plays white by default, AI plays black
         aiInfo: {
             thinking: false,
             moveHistory: []
@@ -80,10 +82,11 @@ export default class ChessGamePlay extends React.Component {
             this.gameLoop();
         }
 
-        // Check if AI should move
+        // Check if AI should move (when it's AI's turn, which is opposite of player's color)
+        const aiColor = this.state.playerColor === Color.WHITE ? Color.BLACK : Color.WHITE;
         if (
             this.state.aiEnabled &&
-            this.state.colorTurn === Color.BLACK &&
+            this.state.colorTurn === aiColor &&
             this.state.gameState === GameState.ONGOING &&
             !this.state.aiInfo.thinking &&
             prevState.colorTurn !== this.state.colorTurn
@@ -109,7 +112,9 @@ export default class ChessGamePlay extends React.Component {
         try {
             // Use current pieces from store to ensure we have the latest board state
             const currentPieces = usePieces.getState().pieces;
-            const aiMove = this.chessAI.getMove(currentPieces, Color.BLACK);
+            // AI plays the opposite color of the player
+            const aiColor = this.state.playerColor === Color.WHITE ? Color.BLACK : Color.WHITE;
+            const aiMove = this.chessAI.getMove(currentPieces, aiColor);
 
             if (aiMove && aiMove.from && aiMove.to) {
                 console.log(`AI plays: ${aiMove.from} -> ${aiMove.to}`);
@@ -175,6 +180,12 @@ export default class ChessGamePlay extends React.Component {
         this.chessAI.setDifficulty(difficulty);
     }
 
+    handlePlayerColorChange = (color: Color) => {
+        this.setState({ playerColor: color });
+        // Reset the game when color changes
+        this.resetGame();
+    }
+
     /**
      * Reset game
      */
@@ -216,8 +227,10 @@ export default class ChessGamePlay extends React.Component {
                             <AISettings
                                 aiEnabled={this.state.aiEnabled}
                                 difficulty={this.state.aiDifficulty}
+                                playerColor={this.state.playerColor}
                                 onAIEnabledChange={this.handleAIEnabledChange}
                                 onDifficultyChange={this.handleDifficultyChange}
+                                onPlayerColorChange={this.handlePlayerColorChange}
                             />
                         </div>
 
@@ -226,16 +239,24 @@ export default class ChessGamePlay extends React.Component {
                             {/* Left Column: Chess Board */}
                             <div className="flex flex-col items-center justify-center">
                                 <div className="w-full max-w-[600px]">
-                                    {/* Player Info - Black */}
+                                    {/* Top Player Info (Black's side) */}
                                     <div className="bg-gray-800 rounded-lg p-3 mb-3 flex items-center justify-between">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold mr-3">
-                                                🤖
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mr-3 ${
+                                                this.state.playerColor === Color.BLACK ? 'bg-white text-gray-900' : 'bg-gray-900 text-white'
+                                            }`}>
+                                                {this.state.playerColor === Color.BLACK ? '👤' : '🤖'}
                                             </div>
                                             <div>
-                                                <div className="text-white font-semibold">Computer</div>
+                                                <div className="text-white font-semibold">
+                                                    {this.state.playerColor === Color.BLACK ? 'You' : 'Computer'}
+                                                </div>
                                                 <div className="text-gray-400 text-sm">
-                                                    {this.state.aiEnabled ? `AI (${['Beginner', 'Easy', 'Medium', 'Hard', 'Expert', 'Master'][this.state.aiDifficulty - 1]})` : 'Player 2'}
+                                                    {this.state.playerColor === Color.BLACK
+                                                        ? 'Player (Black)'
+                                                        : this.state.aiEnabled
+                                                            ? `AI (${['Beginner', 'Easy', 'Medium', 'Hard', 'Expert', 'Master'][this.state.aiDifficulty - 1]})`
+                                                            : 'Player 2 (Black)'}
                                                 </div>
                                             </div>
                                         </div>
@@ -251,15 +272,25 @@ export default class ChessGamePlay extends React.Component {
                                         changeBoardCondition={this.changeBoardCondition}
                                     />
 
-                                    {/* Player Info - White */}
+                                    {/* Bottom Player Info (White's side) */}
                                     <div className="bg-gray-800 rounded-lg p-3 mt-3 flex items-center justify-between">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-900 font-bold mr-3">
-                                                👤
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mr-3 ${
+                                                this.state.playerColor === Color.WHITE ? 'bg-white text-gray-900' : 'bg-gray-900 text-white'
+                                            }`}>
+                                                {this.state.playerColor === Color.WHITE ? '👤' : '🤖'}
                                             </div>
                                             <div>
-                                                <div className="text-white font-semibold">You</div>
-                                                <div className="text-gray-400 text-sm">Player 1</div>
+                                                <div className="text-white font-semibold">
+                                                    {this.state.playerColor === Color.WHITE ? 'You' : 'Computer'}
+                                                </div>
+                                                <div className="text-gray-400 text-sm">
+                                                    {this.state.playerColor === Color.WHITE
+                                                        ? 'Player (White)'
+                                                        : this.state.aiEnabled
+                                                            ? `AI (${['Beginner', 'Easy', 'Medium', 'Hard', 'Expert', 'Master'][this.state.aiDifficulty - 1]})`
+                                                            : 'Player 2 (White)'}
+                                                </div>
                                             </div>
                                         </div>
                                         {this.state.colorTurn === Color.WHITE && (

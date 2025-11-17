@@ -117,6 +117,7 @@ describe('AI Color Validation - Integration Test', () => {
     // Move 1: WHITE (human) plays E2-E4
     const whitePawn = pieces.get('E2')!
     pieces.delete('E2')
+    whitePawn.coordination = Coordination.fromId('E4')
     pieces.set('E4', whitePawn)
 
     // Move 2: BLACK (AI) responds
@@ -129,6 +130,7 @@ describe('AI Color Validation - Integration Test', () => {
 
       // Apply the move
       pieces.delete(blackMove1.from)
+      piece!.coordination = Coordination.fromId(blackMove1.to)
       pieces.set(blackMove1.to, piece!)
     }
 
@@ -142,6 +144,7 @@ describe('AI Color Validation - Integration Test', () => {
 
       // Apply the move
       pieces.delete(whiteMove1.from)
+      piece!.coordination = Coordination.fromId(whiteMove1.to)
       pieces.set(whiteMove1.to, piece!)
     }
 
@@ -195,6 +198,7 @@ describe('AI Color Validation - Integration Test', () => {
     // After 1. e4
     const e4Pawn = pieces.get('E2')!
     pieces.delete('E2')
+    e4Pawn.coordination = Coordination.fromId('E4')
     pieces.set('E4', e4Pawn)
     ai.clearHistory()
 

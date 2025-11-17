@@ -185,6 +185,9 @@ describe('AI Legal Move Validation', () => {
       if (move) {
         console.log(`AI plays: ${move.from} -> ${move.to}`)
 
+        // Ensure the pieces map is in the global store before checking legal moves
+        usePieces.getState().setPieces(pieces)
+
         const piece = pieces.get(move.from)
         expect(piece).toBeDefined()
         expect(piece?.color).toBe(color)
@@ -203,6 +206,8 @@ describe('AI Legal Move Validation', () => {
 
           // Apply the move
           pieces.delete(move.from)
+          // Update the piece's internal coordination
+          piece.coordination = Coordination.fromId(move.to)
           pieces.set(move.to, piece)
           usePieces.getState().setPieces(pieces)
           console.log(`Move applied successfully`)

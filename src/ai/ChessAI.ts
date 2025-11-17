@@ -311,6 +311,7 @@ export class ChessAI {
       from: randomMove.from,
       to: randomMove.to,
       score: 0,
+      openingBook: false,
     };
   }
 

@@ -210,7 +210,8 @@ export default class Board extends React.Component<BoardProps> {
       if (!pieceActivity.isTheSamePosition){
         this.props?.changeColorTurn!()
         const boardCondition = usePieces.getState().pieces;
-        this.props.changeBoardCondition!(boardCondition)
+        // CRITICAL: Create new Map to avoid reference sharing with global store
+        this.props.changeBoardCondition!(new Map(boardCondition))
 
       }
 

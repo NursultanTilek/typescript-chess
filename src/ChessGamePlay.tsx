@@ -11,6 +11,7 @@ import { ChessAI } from "./ai/ChessAI";
 import { Difficulty } from "./ai/types";
 import Coordination from "./board/Coordination";
 import { Move } from "./board/Move";
+import { deepCloneBoard } from "./utils/boardClone";
 // import ClockContainer from "./clock/ClockContainer"
 
 type GameStateType = {
@@ -30,8 +31,9 @@ export default class ChessGamePlay extends React.Component {
     public state: GameStateType = {
         colorTurn: Color.WHITE,
         gameState: GameState.ONGOING,
-        // CRITICAL: Create new Map to avoid reference sharing with global store
-        boardCondition: new Map(usePieces.getState().pieces),
+        // CRITICAL: Deep clone to create completely independent piece objects
+        // Shallow copy (new Map) would still share piece objects causing corruption
+        boardCondition: deepCloneBoard(usePieces.getState().pieces),
         aiEnabled: true,
         aiDifficulty: Difficulty.MEDIUM,
         playerColor: Color.WHITE,  // Player plays white by default, AI plays black

@@ -109,7 +109,7 @@ export default class ChessGamePlay extends React.Component {
         try {
             // Use current pieces from store to ensure we have the latest board state
             const currentPieces = usePieces.getState().pieces;
-            const aiMove = this.chessAI.getMove(currentPieces, this.state.colorTurn);
+            const aiMove = this.chessAI.getMove(currentPieces, Color.BLACK);
 
             if (aiMove && aiMove.from && aiMove.to) {
                 console.log(`AI plays: ${aiMove.from} -> ${aiMove.to}`);

@@ -1,9 +1,10 @@
 /**
- * AI Info Panel Component
+ * AI Info Panel Component (Sidebar style like lichess.org)
  * Displays AI thinking process, evaluation, and move information
  */
 
 import React from "react";
+import { EvaluationBar } from "./EvaluationBar";
 
 export interface AIInfo {
   thinking: boolean;
@@ -24,111 +25,99 @@ interface AIInfoPanelProps {
 
 export class AIInfoPanel extends React.Component<AIInfoPanelProps> {
   formatScore(score: number): string {
-    if (score > 99000) return "White is winning (mate soon)";
-    if (score < -99000) return "Black is winning (mate soon)";
-    if (score > 500) return `White is ahead (+${(score / 100).toFixed(2)} pawns)`;
-    if (score < -500) return `Black is ahead (${(score / 100).toFixed(2)} pawns)`;
-    if (score > 0) return `Slightly better for White (+${(score / 100).toFixed(2)})`;
-    if (score < 0) return `Slightly better for Black (${(score / 100).toFixed(2)})`;
+    if (score > 99000) return "White is winning";
+    if (score < -99000) return "Black is winning";
+    if (score > 200) return `White is better`;
+    if (score < -200) return `Black is better`;
     return "Equal position";
   }
 
   render() {
     const { aiInfo } = this.props;
+    const score = aiInfo.lastMove?.score || 0;
 
     return (
-      <div className="bg-gray-800 text-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold mb-4">
-          🤖 AI Analysis
+      <div className="bg-gray-800 rounded-lg shadow-xl p-4 h-full flex flex-col">
+        <h2 className="text-xl font-bold mb-3 text-white flex items-center">
+          <span className="mr-2">🤖</span>
+          Computer Analysis
         </h2>
+
+        {/* Evaluation Bar */}
+        <EvaluationBar score={score} thinking={aiInfo.thinking} />
 
         {/* Thinking Status */}
         {aiInfo.thinking && (
-          <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-4 animate-pulse">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-blue-500 rounded-full mr-3 animate-ping"></div>
-              <span className="text-xl font-semibold">AI is thinking...</span>
+          <div className="bg-blue-900 bg-opacity-50 rounded-lg p-3 mb-3 border border-blue-500">
+            <div className="flex items-center text-blue-200">
+              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+              <span className="text-sm font-medium">Calculating...</span>
             </div>
           </div>
         )}
 
         {/* Last Move Info */}
-        {aiInfo.lastMove && (
-          <div className="space-y-3">
-            <div className="bg-gray-700 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3 text-green-400">Last Move:</h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-400">Move:</span>
-                  <div className="text-2xl font-bold text-white mt-1">
-                    {aiInfo.lastMove.from} → {aiInfo.lastMove.to}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-gray-400">Source:</span>
-                  <div className="text-lg font-semibold mt-1">
-                    {aiInfo.lastMove.openingBook ? (
-                      <span className="text-purple-400">📚 Opening Book</span>
-                    ) : (
-                      <span className="text-blue-400">🧠 Search Algorithm</span>
-                    )}
-                  </div>
-                </div>
-
-                {!aiInfo.lastMove.openingBook && (
-                  <>
-                    <div>
-                      <span className="text-gray-400">Evaluation:</span>
-                      <div className="text-lg font-semibold mt-1">
-                        <span className={aiInfo.lastMove.score > 0 ? "text-green-400" : aiInfo.lastMove.score < 0 ? "text-red-400" : "text-yellow-400"}>
-                          {(aiInfo.lastMove.score / 100).toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        {this.formatScore(aiInfo.lastMove.score)}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-gray-400">Search Depth:</span>
-                      <div className="text-lg font-semibold text-blue-400 mt-1">
-                        {aiInfo.lastMove.depth} plies
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-gray-400">Time Taken:</span>
-                      <div className="text-lg font-semibold text-yellow-400 mt-1">
-                        {aiInfo.lastMove.timeMs}ms
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-gray-400">Positions Evaluated:</span>
-                      <div className="text-lg font-semibold text-purple-400 mt-1">
-                        ~{Math.pow(30, Math.min(aiInfo.lastMove.depth, 3)).toLocaleString()}
-                      </div>
-                    </div>
-                  </>
-                )}
+        {aiInfo.lastMove && !aiInfo.thinking && (
+          <div className="space-y-3 flex-1">
+            <div className="bg-gray-700 rounded-lg p-3">
+              <div className="text-xs text-gray-400 mb-1">Best Move</div>
+              <div className="text-2xl font-bold text-white mb-2">
+                {aiInfo.lastMove.from} → {aiInfo.lastMove.to}
               </div>
+
+              <div className="text-sm text-gray-300 mb-2">
+                {this.formatScore(aiInfo.lastMove.score)}
+              </div>
+
+              {aiInfo.lastMove.openingBook ? (
+                <div className="flex items-center text-xs text-purple-300">
+                  <span className="mr-1">📚</span>
+                  <span>Opening Book</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-400">Depth:</span>
+                    <span className="text-blue-300 ml-1 font-semibold">
+                      {aiInfo.lastMove.depth}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Time:</span>
+                    <span className="text-green-300 ml-1 font-semibold">
+                      {aiInfo.lastMove.timeMs}ms
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-400">Eval:</span>
+                    <span className={`ml-1 font-semibold ${
+                      aiInfo.lastMove.score > 0 ? 'text-white' : 'text-gray-300'
+                    }`}>
+                      {(aiInfo.lastMove.score / 100).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Move History */}
             {aiInfo.moveHistory.length > 0 && (
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-2 text-blue-400">Move History:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {aiInfo.moveHistory.map((move, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-600 px-3 py-1 rounded text-sm"
-                    >
-                      {index + 1}. {move}
-                    </span>
-                  ))}
+              <div className="bg-gray-700 rounded-lg p-3">
+                <div className="text-xs text-gray-400 mb-2">Move History</div>
+                <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                  <div className="grid grid-cols-2 gap-1">
+                    {aiInfo.moveHistory.map((move, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-600 px-2 py-1 rounded text-xs text-gray-200 flex items-center"
+                      >
+                        <span className="text-gray-400 mr-1 text-[10px]">
+                          {index + 1}.
+                        </span>
+                        <span className="font-mono">{move}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -137,11 +126,31 @@ export class AIInfoPanel extends React.Component<AIInfoPanelProps> {
 
         {/* No moves yet */}
         {!aiInfo.lastMove && !aiInfo.thinking && (
-          <div className="text-center text-gray-400 py-8">
-            <p className="text-lg">Make your first move to start the game!</p>
-            <p className="text-sm mt-2">AI will respond as Black</p>
+          <div className="flex-1 flex items-center justify-center text-center">
+            <div className="text-gray-400">
+              <div className="text-4xl mb-2">♟️</div>
+              <p className="text-sm">Make your first move</p>
+              <p className="text-xs mt-1">AI will respond</p>
+            </div>
           </div>
         )}
+
+        <style>{`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #374151;
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #4B5563;
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #6B7280;
+          }
+        `}</style>
       </div>
     );
   }

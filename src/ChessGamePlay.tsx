@@ -194,38 +194,83 @@ export default class ChessGamePlay extends React.Component {
             <>
                 { this.state.gameState !== GameState.ONGOING && <GameStatePopUp gameState={this.state.gameState} />}
 
-                <div className="min-h-screen bg-gray-900 py-8">
-                    <div className="container mx-auto px-4">
-                        <h1 className="text-4xl font-bold text-white text-center mb-6">
-                            Chess Game
-                        </h1>
-
-                        <AISettings
-                            aiEnabled={this.state.aiEnabled}
-                            difficulty={this.state.aiDifficulty}
-                            onAIEnabledChange={this.handleAIEnabledChange}
-                            onDifficultyChange={this.handleDifficultyChange}
-                        />
-
-                        <div className="mb-6">
-                            <AIInfoPanel aiInfo={this.state.aiInfo} />
-                        </div>
-
-                        <div className="flex flex-wrap justify-center">
-                            <Board
-                                colorTurn={this.state.colorTurn}
-                                changeColorTurn={this.changeColorTurn}
-                                changeBoardCondition={this.changeBoardCondition}
-                            />
-                        </div>
-
-                        <div className="text-center mt-6">
+                <div className="min-h-screen bg-gray-900">
+                    <div className="container mx-auto px-4 py-6 max-w-7xl">
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-6">
+                            <h1 className="text-3xl font-bold text-white">
+                                Chess AI
+                            </h1>
                             <button
                                 onClick={this.resetGame}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-lg"
                             >
                                 New Game
                             </button>
+                        </div>
+
+                        {/* Settings */}
+                        <div className="mb-6">
+                            <AISettings
+                                aiEnabled={this.state.aiEnabled}
+                                difficulty={this.state.aiDifficulty}
+                                onAIEnabledChange={this.handleAIEnabledChange}
+                                onDifficultyChange={this.handleDifficultyChange}
+                            />
+                        </div>
+
+                        {/* Main Layout: Board + Sidebar (like lichess.org) */}
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6">
+                            {/* Left Column: Chess Board */}
+                            <div className="flex flex-col items-center justify-center">
+                                <div className="w-full max-w-[600px]">
+                                    {/* Player Info - Black */}
+                                    <div className="bg-gray-800 rounded-lg p-3 mb-3 flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                                🤖
+                                            </div>
+                                            <div>
+                                                <div className="text-white font-semibold">Computer</div>
+                                                <div className="text-gray-400 text-sm">
+                                                    {this.state.aiEnabled ? `AI (${['Beginner', 'Easy', 'Medium', 'Hard', 'Expert', 'Master'][this.state.aiDifficulty - 1]})` : 'Player 2'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {this.state.colorTurn === Color.BLACK && (
+                                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        )}
+                                    </div>
+
+                                    {/* Chess Board */}
+                                    <Board
+                                        colorTurn={this.state.colorTurn}
+                                        changeColorTurn={this.changeColorTurn}
+                                        changeBoardCondition={this.changeBoardCondition}
+                                    />
+
+                                    {/* Player Info - White */}
+                                    <div className="bg-gray-800 rounded-lg p-3 mt-3 flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-900 font-bold mr-3">
+                                                👤
+                                            </div>
+                                            <div>
+                                                <div className="text-white font-semibold">You</div>
+                                                <div className="text-gray-400 text-sm">Player 1</div>
+                                            </div>
+                                        </div>
+                                        {this.state.colorTurn === Color.WHITE && (
+                                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Column: AI Analysis */}
+                            <div className="lg:sticky lg:top-6 h-fit">
+                                <AIInfoPanel aiInfo={this.state.aiInfo} />
+                            </div>
                         </div>
                     </div>
                 </div>

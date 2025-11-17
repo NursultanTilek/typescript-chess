@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { findBestMove, DEFAULT_SEARCH_CONFIG } from '../search'
+import { findBestMove } from '../search'
 import { Color } from '../../enum'
 import { CoordinationId, PieceType } from '../../types'
 import Coordination from '../../board/Coordination'
 import Pawn from '../../pieces/Pawn'
-import Knight from '../../pieces/Knight'
-import Bishop from '../../pieces/Bishop'
 import Rook from '../../pieces/Rook'
 import Queen from '../../pieces/Queen'
 import King from '../../pieces/King'
@@ -122,6 +120,7 @@ describe('Chess AI Search', () => {
 
       // Should return null or at least recognize no good moves
       // The actual behavior depends on whether it's checkmate or stalemate
+      expect(move).toBeDefined()
     })
 
     it('should work with alpha-beta pruning disabled', () => {

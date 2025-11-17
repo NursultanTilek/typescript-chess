@@ -8,6 +8,9 @@ export interface AIMove {
   from: CoordinationId;
   to: CoordinationId;
   score: number;
+  depth?: number;
+  timeMs?: number;
+  openingBook?: boolean;
 }
 
 export interface EvaluationWeights {

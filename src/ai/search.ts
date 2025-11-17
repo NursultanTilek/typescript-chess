@@ -403,6 +403,11 @@ export function findBestMove(
         2
       )}, Depth: ${searchDepth}, Time: ${elapsed}ms`
     );
+
+    // Add depth and time information to the move
+    bestMove.depth = searchDepth;
+    bestMove.timeMs = elapsed;
+    bestMove.openingBook = false;
   }
 
   return bestMove;

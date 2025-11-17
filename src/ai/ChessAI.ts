@@ -145,6 +145,9 @@ export class ChessAI {
           from: openingMove.from,
           to: openingMove.to,
           score: 0,
+          depth: 0,
+          timeMs: 0,
+          openingBook: true,
         };
       }
     }

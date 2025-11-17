@@ -6,6 +6,7 @@ import { usePieces } from "./store/usePieces";
 import { CoordinationId, PieceType } from "./types";
 import GameStatePopUp from "./gameState/GameStatePopUp";
 import { AISettings } from "./components/AISettings";
+import { AIInfoPanel, AIInfo } from "./components/AIInfoPanel";
 import { ChessAI } from "./ai/ChessAI";
 import { Difficulty } from "./ai/types";
 import Coordination from "./board/Coordination";
@@ -18,7 +19,7 @@ type GameStateType = {
     boardCondition: Map<CoordinationId, PieceType>,
     aiEnabled: boolean,
     aiDifficulty: Difficulty,
-    aiThinking: boolean
+    aiInfo: AIInfo
 }
 
 export default class ChessGamePlay extends React.Component {
@@ -31,7 +32,10 @@ export default class ChessGamePlay extends React.Component {
         boardCondition: usePieces.getState().pieces,
         aiEnabled: true,
         aiDifficulty: Difficulty.MEDIUM,
-        aiThinking: false
+        aiInfo: {
+            thinking: false,
+            moveHistory: []
+        }
     }
 
     constructor(board: Board) {
@@ -40,12 +44,10 @@ export default class ChessGamePlay extends React.Component {
     }
 
     gameLoop() {
-        let colorToMove: Color = this.state.colorTurn;
-        let state = this.determineGameState(this.state.boardCondition, colorToMove);
+        const colorToMove: Color = this.state.colorTurn;
 
         if (this.state.gameState === GameState.ONGOING) {
-            this.setState({ gameState: this.determineGameState(this.state.boardCondition, this.state.colorTurn) });
-            state = this.determineGameState(this.state.boardCondition, colorToMove);
+            this.setState({ gameState: this.determineGameState(this.state.boardCondition, colorToMove) });
         }
     }
 
@@ -70,7 +72,7 @@ export default class ChessGamePlay extends React.Component {
         this.setState({boardCondition:newBoardCondition})
     }
 
-    componentDidUpdate(prevProps: GameStateType, prevState: GameStateType) {
+    componentDidUpdate(_prevProps: GameStateType, prevState: GameStateType) {
         // Check if colorTurn or boardCondition has changed
         console.log(this.state.boardCondition)
         if (this.state.colorTurn !== prevState.colorTurn || this.state.boardCondition !== prevState.boardCondition) {
@@ -83,7 +85,7 @@ export default class ChessGamePlay extends React.Component {
             this.state.aiEnabled &&
             this.state.colorTurn === Color.BLACK &&
             this.state.gameState === GameState.ONGOING &&
-            !this.state.aiThinking &&
+            !this.state.aiInfo.thinking &&
             prevState.colorTurn !== this.state.colorTurn
         ) {
             this.makeAIMove();
@@ -94,7 +96,12 @@ export default class ChessGamePlay extends React.Component {
      * Make AI move
      */
     makeAIMove = async () => {
-        this.setState({ aiThinking: true });
+        this.setState({
+            aiInfo: {
+                ...this.state.aiInfo,
+                thinking: true
+            }
+        });
 
         // Add a small delay to make it feel more natural
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -112,17 +119,42 @@ export default class ChessGamePlay extends React.Component {
                 );
                 move.move();
 
-                // Update state
-                this.setState({ aiThinking: false });
+                // Update AI info with move details
+                const moveNotation = `${aiMove.from}-${aiMove.to}`;
+                this.setState({
+                    aiInfo: {
+                        thinking: false,
+                        lastMove: {
+                            from: aiMove.from,
+                            to: aiMove.to,
+                            score: aiMove.score,
+                            depth: aiMove.depth || 0,
+                            timeMs: aiMove.timeMs || 0,
+                            openingBook: aiMove.openingBook || false
+                        },
+                        moveHistory: [...this.state.aiInfo.moveHistory, moveNotation]
+                    }
+                });
+
                 this.changeColorTurn();
                 this.changeBoardCondition(usePieces.getState().pieces);
             } else {
                 console.log("AI has no legal moves");
-                this.setState({ aiThinking: false });
+                this.setState({
+                    aiInfo: {
+                        ...this.state.aiInfo,
+                        thinking: false
+                    }
+                });
             }
         } catch (error) {
             console.error("AI move error:", error);
-            this.setState({ aiThinking: false });
+            this.setState({
+                aiInfo: {
+                    ...this.state.aiInfo,
+                    thinking: false
+                }
+            });
         }
     }
 
@@ -148,7 +180,10 @@ export default class ChessGamePlay extends React.Component {
         this.setState({
             colorTurn: Color.WHITE,
             gameState: GameState.ONGOING,
-            aiThinking: false
+            aiInfo: {
+                thinking: false,
+                moveHistory: []
+            }
         });
         this.chessAI.clearHistory();
     }
@@ -172,11 +207,9 @@ export default class ChessGamePlay extends React.Component {
                             onDifficultyChange={this.handleDifficultyChange}
                         />
 
-                        {this.state.aiThinking && (
-                            <div className="text-center text-white text-xl mb-4">
-                                AI is thinking...
-                            </div>
-                        )}
+                        <div className="mb-6">
+                            <AIInfoPanel aiInfo={this.state.aiInfo} />
+                        </div>
 
                         <div className="flex flex-wrap justify-center">
                             <Board

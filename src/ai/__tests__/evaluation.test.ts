@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { evaluatePosition, getPieceValue, DEFAULT_WEIGHTS } from '../evaluation'
-import { Color, PieceName } from '../../enum'
+import { Color } from '../../enum'
 import { CoordinationId, PieceType } from '../../types'
 import Coordination from '../../board/Coordination'
 import Pawn from '../../pieces/Pawn'

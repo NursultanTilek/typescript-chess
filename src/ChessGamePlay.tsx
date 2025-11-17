@@ -119,12 +119,46 @@ export default class ChessGamePlay extends React.Component {
             if (aiMove && aiMove.from && aiMove.to) {
                 console.log(`AI plays: ${aiMove.from} -> ${aiMove.to}`);
 
+                // Check if piece exists at source
+                const piece = currentPieces.get(aiMove.from);
+                console.log(`Piece at ${aiMove.from}:`, piece?.constructor.name, piece?.color);
+
+                if (!piece) {
+                    console.error(`ERROR: No piece at ${aiMove.from}`);
+                    this.setState({
+                        aiInfo: {
+                            ...this.state.aiInfo,
+                            thinking: false
+                        }
+                    });
+                    return;
+                }
+
+                // Check if piece is the right color
+                if (piece.color !== aiColor) {
+                    console.error(`ERROR: Piece at ${aiMove.from} is ${piece.color}, but AI is ${aiColor}`);
+                    this.setState({
+                        aiInfo: {
+                            ...this.state.aiInfo,
+                            thinking: false
+                        }
+                    });
+                    return;
+                }
+
                 // Execute the move
                 const move = new Move(
                     Coordination.fromId(aiMove.to),
                     Coordination.fromId(aiMove.from)
                 );
+
+                console.log(`Executing move from ${aiMove.from} to ${aiMove.to}`);
+                console.log(`Move validation - isTheSamePosition:`, move.isTheSamePosition);
+                console.log(`Move validation - piece available moves:`, Array.from(piece.getAvailableMoves()));
+
                 move.move();
+
+                console.log(`Move executed. Piece now at:`, usePieces.getState().pieces.get(aiMove.to)?.constructor.name);
 
                 // Update AI info with move details
                 const moveNotation = `${aiMove.from}-${aiMove.to}`;

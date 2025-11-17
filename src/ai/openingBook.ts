@@ -5,7 +5,8 @@
  * This helps the AI play strong opening moves without deep search
  */
 
-import { CoordinationId } from "../types";
+import { CoordinationId, PieceType } from "../types";
+import { Color } from "../enum";
 
 export interface OpeningMove {
   from: CoordinationId;
@@ -163,7 +164,9 @@ function getMoveSequenceKey(moveHistory: string[]): string {
  * Get a random move from the opening book
  */
 export function getOpeningBookMove(
-  moveHistory: string[]
+  moveHistory: string[],
+  pieces: Map<CoordinationId, PieceType>,
+  color: Color
 ): OpeningMove | null {
   // Try to find position in opening book
   for (let i = moveHistory.length; i >= 0; i--) {
@@ -171,9 +174,18 @@ export function getOpeningBookMove(
     const moves = OPENING_BOOK[key];
 
     if (moves && moves.length > 0) {
-      // Return random move from the options
-      const randomIndex = Math.floor(Math.random() * moves.length);
-      return moves[randomIndex];
+      // Filter moves to only include those for the correct color
+      const validMoves = moves.filter((move) => {
+        const piece = pieces.get(move.from);
+        // Only return move if there's a piece at 'from' position and it's the correct color
+        return piece && piece.color === color;
+      });
+
+      if (validMoves.length > 0) {
+        // Return random move from the valid options
+        const randomIndex = Math.floor(Math.random() * validMoves.length);
+        return validMoves[randomIndex];
+      }
     }
   }
 

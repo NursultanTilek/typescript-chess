@@ -1,5 +1,47 @@
 import { describe, it, expect } from 'vitest'
 import { getOpeningBookMove, isInOpeningBook, moveToNotation } from '../openingBook'
+import { Color } from '../../enum'
+import { CoordinationId, PieceType } from '../../types'
+import Pawn from '../../pieces/Pawn'
+import Rook from '../../pieces/Rook'
+import Knight from '../../pieces/Knight'
+import Bishop from '../../pieces/Bishop'
+import Queen from '../../pieces/Queen'
+import King from '../../pieces/King'
+import Coordination from '../../board/Coordination'
+
+// Helper to create a starting position
+function createStartingPosition(): Map<CoordinationId, PieceType> {
+  const pieces = new Map<CoordinationId, PieceType>()
+
+  // White pieces
+  pieces.set('A1', new Rook(new Coordination('A', 1), Color.WHITE))
+  pieces.set('B1', new Knight(new Coordination('B', 1), Color.WHITE))
+  pieces.set('C1', new Bishop(new Coordination('C', 1), Color.WHITE))
+  pieces.set('D1', new Queen(new Coordination('D', 1), Color.WHITE))
+  pieces.set('E1', new King(new Coordination('E', 1), Color.WHITE))
+  pieces.set('F1', new Bishop(new Coordination('F', 1), Color.WHITE))
+  pieces.set('G1', new Knight(new Coordination('G', 1), Color.WHITE))
+  pieces.set('H1', new Rook(new Coordination('H', 1), Color.WHITE))
+  for (const file of ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']) {
+    pieces.set(`${file}2` as CoordinationId, new Pawn(new Coordination(file, 2), Color.WHITE))
+  }
+
+  // Black pieces
+  pieces.set('A8', new Rook(new Coordination('A', 8), Color.BLACK))
+  pieces.set('B8', new Knight(new Coordination('B', 8), Color.BLACK))
+  pieces.set('C8', new Bishop(new Coordination('C', 8), Color.BLACK))
+  pieces.set('D8', new Queen(new Coordination('D', 8), Color.BLACK))
+  pieces.set('E8', new King(new Coordination('E', 8), Color.BLACK))
+  pieces.set('F8', new Bishop(new Coordination('F', 8), Color.BLACK))
+  pieces.set('G8', new Knight(new Coordination('G', 8), Color.BLACK))
+  pieces.set('H8', new Rook(new Coordination('H', 8), Color.BLACK))
+  for (const file of ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']) {
+    pieces.set(`${file}7` as CoordinationId, new Pawn(new Coordination(file, 7), Color.BLACK))
+  }
+
+  return pieces
+}
 
 describe('Chess Opening Book', () => {
   describe('moveToNotation', () => {
@@ -51,12 +93,13 @@ describe('Chess Opening Book', () => {
 
   describe('getOpeningBookMove', () => {
     it('should return a move for starting position', () => {
-      const move = getOpeningBookMove([])
+      const pieces = createStartingPosition()
+      const move = getOpeningBookMove([], pieces, Color.WHITE)
       expect(move).not.toBeNull()
       if (move) {
         expect(move.from).toBeDefined()
         expect(move.to).toBeDefined()
-        // Popular first moves
+        // Popular first moves (WHITE)
         const popularMoves = [
           { from: 'E2', to: 'E4' },
           { from: 'D2', to: 'D4' },
@@ -71,10 +114,11 @@ describe('Chess Opening Book', () => {
     })
 
     it('should return response to 1.e4', () => {
-      const move = getOpeningBookMove(['E2-E4'])
+      const pieces = createStartingPosition()
+      const move = getOpeningBookMove(['E2-E4'], pieces, Color.BLACK)
       expect(move).not.toBeNull()
       if (move) {
-        // Popular responses to e4
+        // Popular responses to e4 (BLACK moves)
         const responses = [
           { from: 'E7', to: 'E5' }, // King's Pawn
           { from: 'C7', to: 'C5' }, // Sicilian
@@ -89,10 +133,11 @@ describe('Chess Opening Book', () => {
     })
 
     it('should return response to 1.d4', () => {
-      const move = getOpeningBookMove(['D2-D4'])
+      const pieces = createStartingPosition()
+      const move = getOpeningBookMove(['D2-D4'], pieces, Color.BLACK)
       expect(move).not.toBeNull()
       if (move) {
-        // Popular responses to d4
+        // Popular responses to d4 (BLACK moves)
         const responses = [
           { from: 'D7', to: 'D5' }, // Queen's Pawn
           { from: 'G8', to: 'F6' }, // Indian Defenses
@@ -106,7 +151,8 @@ describe('Chess Opening Book', () => {
     })
 
     it('should return continuation for King\'s Pawn Game', () => {
-      const move = getOpeningBookMove(['E2-E4', 'E7-E5'])
+      const pieces = createStartingPosition()
+      const move = getOpeningBookMove(['E2-E4', 'E7-E5'], pieces, Color.WHITE)
       expect(move).not.toBeNull()
       if (move) {
         // Popular third moves for white
@@ -123,7 +169,8 @@ describe('Chess Opening Book', () => {
     })
 
     it('should return continuation for Sicilian Defense', () => {
-      const move = getOpeningBookMove(['E2-E4', 'C7-C5'])
+      const pieces = createStartingPosition()
+      const move = getOpeningBookMove(['E2-E4', 'C7-C5'], pieces, Color.WHITE)
       expect(move).not.toBeNull()
       if (move) {
         // Popular third moves for white in Sicilian
@@ -139,12 +186,13 @@ describe('Chess Opening Book', () => {
     })
 
     it('should return continuation for Ruy Lopez', () => {
+      const pieces = createStartingPosition()
       const move = getOpeningBookMove([
         'E2-E4', 'E7-E5', 'G1-F3', 'B8-C6'
-      ])
+      ], pieces, Color.WHITE)
       expect(move).not.toBeNull()
       if (move) {
-        // Popular moves
+        // Popular moves for WHITE
         const moves = [
           { from: 'F1', to: 'B5' }, // Ruy Lopez
           { from: 'F1', to: 'C4' }  // Italian Game
@@ -157,7 +205,8 @@ describe('Chess Opening Book', () => {
     })
 
     it('should handle position not in book', () => {
-      const move = getOpeningBookMove(['A2-A3', 'A7-A6']) // Garbage opening
+      const pieces = createStartingPosition()
+      const move = getOpeningBookMove(['A2-A3', 'A7-A6'], pieces, Color.WHITE) // Garbage opening
       // The function looks back through history, so might find a match
       // or return null. Either is acceptable.
       if (move) {
@@ -167,8 +216,9 @@ describe('Chess Opening Book', () => {
     })
 
     it('should handle deep position not in book', () => {
+      const pieces = createStartingPosition()
       const deepLine = Array(30).fill('E2-E4') // Nonsense but very deep
-      const move = getOpeningBookMove(deepLine)
+      const move = getOpeningBookMove(deepLine, pieces, Color.WHITE)
       // Might return null or fall back to starting position
       if (move) {
         expect(move.from).toBeDefined()
@@ -177,10 +227,11 @@ describe('Chess Opening Book', () => {
     })
 
     it('should provide variety by selecting random moves', () => {
+      const pieces = createStartingPosition()
       // Test that we get potentially different moves from multiple calls
       const moves = new Set()
       for (let i = 0; i < 20; i++) {
-        const move = getOpeningBookMove([])
+        const move = getOpeningBookMove([], pieces, Color.WHITE)
         if (move) {
           moves.add(`${move.from}-${move.to}`)
         }
@@ -194,31 +245,33 @@ describe('Chess Opening Book', () => {
 
   describe('Opening book coverage', () => {
     it('should have moves for major openings', () => {
-      const majorLines = [
-        [],                                           // Starting position
-        ['E2-E4'],                                    // After e4
-        ['E2-E4', 'E7-E5'],                          // King's Pawn Game
-        ['E2-E4', 'E7-E5', 'G1-F3', 'B8-C6'],       // Ruy Lopez setup
-        ['E2-E4', 'C7-C5'],                          // Sicilian
-        ['D2-D4'],                                    // After d4
-        ['D2-D4', 'D7-D5'],                          // Queen's Gambit setup
-        ['D2-D4', 'G8-F6'],                          // Indian Defenses
-        ['C2-C4']                                     // English Opening
+      const pieces = createStartingPosition()
+      const majorLines: [string[], Color][] = [
+        [[], Color.WHITE],                                           // Starting position - WHITE
+        [['E2-E4'], Color.BLACK],                                    // After e4 - BLACK
+        [['E2-E4', 'E7-E5'], Color.WHITE],                          // King's Pawn Game - WHITE
+        [['E2-E4', 'E7-E5', 'G1-F3', 'B8-C6'], Color.WHITE],       // Ruy Lopez setup - WHITE
+        [['E2-E4', 'C7-C5'], Color.WHITE],                          // Sicilian - WHITE
+        [['D2-D4'], Color.BLACK],                                    // After d4 - BLACK
+        [['D2-D4', 'D7-D5'], Color.WHITE],                          // Queen's Gambit setup - WHITE
+        [['D2-D4', 'G8-F6'], Color.WHITE],                          // Indian Defenses - WHITE
+        [['C2-C4'], Color.BLACK]                                     // English Opening - BLACK
       ]
 
-      majorLines.forEach(line => {
-        const move = getOpeningBookMove(line)
+      majorLines.forEach(([line, color]) => {
+        const move = getOpeningBookMove(line, pieces, color)
         expect(move).not.toBeNull()
       })
     })
 
     it('should support both colors', () => {
+      const pieces = createStartingPosition()
       // After 1.e4, Black should have a response
-      const blackMove = getOpeningBookMove(['E2-E4'])
+      const blackMove = getOpeningBookMove(['E2-E4'], pieces, Color.BLACK)
       expect(blackMove).not.toBeNull()
 
       // After 1.e4 e5, White should have a response
-      const whiteMove = getOpeningBookMove(['E2-E4', 'E7-E5'])
+      const whiteMove = getOpeningBookMove(['E2-E4', 'E7-E5'], pieces, Color.WHITE)
       expect(whiteMove).not.toBeNull()
     })
   })

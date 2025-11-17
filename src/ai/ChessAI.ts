@@ -206,7 +206,7 @@ export class ChessAI {
 
     // Try opening book first (if enabled and early in game)
     if (this.useOpeningBook && this.moveHistory.length < 20) {
-      const openingMove = getOpeningBookMove(this.moveHistory);
+      const openingMove = getOpeningBookMove(this.moveHistory, pieces, color);
       if (openingMove) {
         console.log("Using opening book move:", openingMove);
         this.addMoveToHistory(openingMove.from, openingMove.to);

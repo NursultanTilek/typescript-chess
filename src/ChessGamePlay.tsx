@@ -182,6 +182,16 @@ export default class ChessGamePlay extends React.Component {
                 // CRITICAL FIX: Create a NEW Map instance to trigger React re-render
                 // React won't detect changes if we pass the same Map reference
                 this.changeColorTurn();
+
+                // Debug: Log all pieces and their coordinates to verify consistency
+                console.log('=== Board State After AI Move ===');
+                for (const [key, piece] of newPieces.entries()) {
+                    const coordMatch = piece.coordination.id === key;
+                    if (!coordMatch) {
+                        console.error(`MISMATCH: Piece at ${key} has coordination ${piece.coordination.id}`);
+                    }
+                }
+
                 this.changeBoardCondition(new Map(newPieces));
             } else {
                 console.log("AI has no legal moves");

@@ -104,18 +104,21 @@ export default class Board extends React.Component<BoardProps> {
   }
   private getMoveIndicators() {
     const { selectedPieceCoordination } = this.state;
+    const boardCondition = usePieces.getState().pieces;
     if (selectedPieceCoordination) {
-      if (this.board.getPiece(selectedPieceCoordination)?.color !== this.props.colorTurn) return
+      const piece = boardCondition.get(selectedPieceCoordination.id);
+      if (piece?.color !== this.props.colorTurn) return
       else {
-        const indicators = this.board.getPiece(selectedPieceCoordination)?.getAvailableMoves()
+        const indicators = piece?.getAvailableMoves()
         return indicators
       }
     }
   }
   private isCurrentPositionLegalToMove(currentCondition: Coordination) {
     const { selectedPieceCoordination } = this.state;
+    const boardCondition = usePieces.getState().pieces;
     if (selectedPieceCoordination) {
-      const availableMoves = this.board.getPiece(selectedPieceCoordination)?.getAvailableMoves()
+      const availableMoves = boardCondition.get(selectedPieceCoordination.id)?.getAvailableMoves()
       return availableMoves?.has(currentCondition.id)
     }
     else {
@@ -126,19 +129,19 @@ export default class Board extends React.Component<BoardProps> {
 
   private showCheckedKing(file: string, rank: number) {
     const coordination = new Coordination(file, rank);
-    // const boardCondition = usePieces.getState().pieces;
-    const king = this.board.pieces.get(coordination.id);
+    const boardCondition = usePieces.getState().pieces;
+    const king = boardCondition.get(coordination.id);
 
     // Ensure the piece is a King of the correct color
     if (king && king.name === PieceName.KING) {
       // Get all pieces of the opposite color
-      const enemyPieces = Array.from(this.board.pieces.values()).filter(
+      const enemyPieces = Array.from(boardCondition.values()).filter(
         piece => piece?.color !== king.color
       );
 
       // Check if any enemy piece can attack the King
       for (const enemyPiece of enemyPieces) {
-        const attackedSquares = enemyPiece?.getAttackedSquares(this.board.pieces);
+        const attackedSquares = enemyPiece?.getAttackedSquares(boardCondition);
         if (attackedSquares?.has(coordination.id)) {
           return 'under-check';
         }
@@ -152,16 +155,17 @@ export default class Board extends React.Component<BoardProps> {
     const currentBoard = new Coordination(file, rank);
     const indicators = this.getMoveIndicators();
     const { selectedPieceCoordination } = this.state;
+    const boardCondition = usePieces.getState().pieces;
 
     if (selectedPieceCoordination) {
-      const selected = this.board.getPiece(selectedPieceCoordination)?.coordination.id;
+      const selected = boardCondition.get(selectedPieceCoordination.id)?.coordination.id;
       if (currentBoard.id === selected) return 'selected';
     }
 
     if (!indicators) return '';
     for (const indicator of indicators) {
       if (currentBoard.id === indicator) {
-        const pieceExist = this.board.pieces.get(indicator);
+        const pieceExist = boardCondition.get(indicator);
         return pieceExist ? '' : 'empty';
       }
     }
@@ -180,10 +184,11 @@ export default class Board extends React.Component<BoardProps> {
   private renderPieceMoveIndicator(file: string, rank: number) {
     const currentBoard = new Coordination(file, rank);
     const indicators = this.getMoveIndicators();
+    const boardCondition = usePieces.getState().pieces;
     if (!indicators) return '';
     for (const indicator of indicators) {
       if (currentBoard.id === indicator) {
-        const pieceExist = this.board.pieces.get(indicator);
+        const pieceExist = boardCondition.get(indicator);
         return pieceExist ? 'piece' : '';
       }
     }
@@ -204,14 +209,16 @@ export default class Board extends React.Component<BoardProps> {
       pieceActivity.move();
       if (!pieceActivity.isTheSamePosition){
         this.props?.changeColorTurn!()
-        this.props.changeBoardCondition!(this.board.pieces)
-    
-      } 
-        
+        const boardCondition = usePieces.getState().pieces;
+        this.props.changeBoardCondition!(boardCondition)
+
+      }
+
       this.setState({ selectedPieceCoordination: null });
     } else {
       // If no piece is selected or an invalid move is clicked, update the selected piece coordination
-      if (this.board.getPiece(currentCoordination)?.color === this.props.colorTurn) {
+      const boardCondition = usePieces.getState().pieces;
+      if (boardCondition.get(currentCoordination.id)?.color === this.props.colorTurn) {
         this.setState({ selectedPieceCoordination: currentCoordination });
       } else {
         this.setState({ selectedPieceCoordination: null });
@@ -221,6 +228,9 @@ export default class Board extends React.Component<BoardProps> {
 
 
   render() {
+    // CRITICAL FIX: Use the global pieces store instead of stale this.board.pieces
+    const currentPieces = usePieces.getState().pieces;
+
     return (
       <div className="flex justify-center items-center">
         <div className="inline-block">
@@ -228,7 +238,7 @@ export default class Board extends React.Component<BoardProps> {
             <div key={rank} className="flex">
               <div className=" w-12 h-12 flex items-center justify-center font-bold">{rank}</div>
               {BoardFactory.files.map((file) => {
-                const piece = this.board.getPiece(new Coordination(file, rank))
+                const piece = currentPieces.get(new Coordination(file, rank).id)
 
                 return (
                   <div

@@ -18,6 +18,7 @@ import { AIMove, TranspositionEntry, SearchConfig } from "./types";
 import { GameStateChecker } from "../gameState/GameStateChecker";
 import { usePieces } from "../store/usePieces";
 import { deepCloneBoard } from "../utils/boardClone";
+import { debug } from "../utils/debug";
 
 /**
  * Transposition table for memoizing position evaluations
@@ -120,9 +121,9 @@ function makeMove(
     const move = new Move(Coordination.fromId(to), Coordination.fromId(from));
     move.move();
 
-    // Get the updated pieces from the store
+    // Get the updated pieces from the store with deep clone
     const newPieces = usePieces.getState().pieces;
-    return new Map(newPieces);
+    return deepCloneBoard(newPieces);
   } finally {
     // Restore original board state
     usePieces.getState().setPieces(originalPieces);
@@ -383,7 +384,7 @@ export function findBestMove(
         config.timeLimitMs &&
         Date.now() - startTime > config.timeLimitMs
       ) {
-        console.log(`Search stopped at depth ${depth} due to time limit`);
+        debug.log(`Search stopped at depth ${depth} due to time limit`);
         break;
       }
     }
@@ -403,7 +404,7 @@ export function findBestMove(
 
   if (bestMove) {
     const elapsed = Date.now() - startTime;
-    console.log(
+    debug.log(
       `Best move: ${bestMove.from} -> ${bestMove.to}, Score: ${bestMove.score.toFixed(
         2
       )}, Depth: ${searchDepth}, Time: ${elapsed}ms`

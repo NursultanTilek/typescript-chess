@@ -9,6 +9,8 @@ import { evaluatePosition } from "./evaluation";
 import { usePieces } from "../store/usePieces";
 import { Move } from "../board/Move";
 import Coordination from "../board/Coordination";
+import { debug } from "../utils/debug";
+import { deepCloneBoard } from "../utils/boardClone";
 
 /**
  * MCTS Node representing a game state
@@ -29,7 +31,8 @@ export class MCTSNode {
     parent: MCTSNode | null = null,
     move: { from: CoordinationId; to: CoordinationId } | null = null
   ) {
-    this.state = new Map(state);
+    // CRITICAL: Deep clone to prevent piece mutation during MCTS simulation
+    this.state = deepCloneBoard(state);
     this.color = color;
     this.parent = parent;
     this.move = move;
@@ -152,7 +155,8 @@ export class MCTSNode {
     from: CoordinationId;
     to: CoordinationId;
   }): Map<CoordinationId, PieceType> {
-    const newState = new Map(this.state);
+    // CRITICAL: Deep clone to prevent mutation of parent node's state
+    const newState = deepCloneBoard(this.state);
 
     // Temporarily set pieces to perform move
     const originalPieces = usePieces.getState().pieces;
@@ -165,8 +169,8 @@ export class MCTSNode {
       );
       moveObj.move();
 
-      // Get updated state
-      return new Map(usePieces.getState().pieces);
+      // Get updated state with deep clone
+      return deepCloneBoard(usePieces.getState().pieces);
     } finally {
       usePieces.getState().setPieces(originalPieces);
     }
@@ -269,7 +273,7 @@ export function mctsSearch(
     child.visits > best.visits ? child : best
   );
 
-  console.log(
+  debug.log(
     `MCTS completed ${iterations} iterations in ${
       Date.now() - startTime
     }ms, best move visits: ${bestChild.visits}`

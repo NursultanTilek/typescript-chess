@@ -169,10 +169,18 @@ export default class ChessGamePlay extends React.Component {
      * Handle AI settings changes
      */
     handleAIEnabledChange = (enabled: boolean) => {
-        this.setState({ aiEnabled: enabled });
-        if (enabled) {
-            this.chessAI.setDifficulty(this.state.aiDifficulty);
-        }
+        this.setState({ aiEnabled: enabled }, () => {
+            if (enabled) {
+                this.chessAI.setDifficulty(this.state.aiDifficulty);
+                // Check if it's AI's turn and trigger move if needed
+                setTimeout(() => {
+                    const aiColor = this.state.playerColor === Color.WHITE ? Color.BLACK : Color.WHITE;
+                    if (this.state.colorTurn === aiColor && this.state.gameState === GameState.ONGOING && !this.state.aiInfo.thinking) {
+                        this.makeAIMove();
+                    }
+                }, 100);
+            }
+        });
     }
 
     handleDifficultyChange = (difficulty: Difficulty) => {
@@ -181,9 +189,18 @@ export default class ChessGamePlay extends React.Component {
     }
 
     handlePlayerColorChange = (color: Color) => {
-        this.setState({ playerColor: color });
-        // Reset the game when color changes
-        this.resetGame();
+        this.setState({ playerColor: color }, () => {
+            // Reset the game when color changes
+            this.resetGame();
+            // After reset, check if AI should make the first move
+            // (e.g., if player chose BLACK, AI (WHITE) moves first)
+            setTimeout(() => {
+                const aiColor = this.state.playerColor === Color.WHITE ? Color.BLACK : Color.WHITE;
+                if (this.state.aiEnabled && this.state.colorTurn === aiColor && this.state.gameState === GameState.ONGOING) {
+                    this.makeAIMove();
+                }
+            }, 100);
+        });
     }
 
     /**

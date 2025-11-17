@@ -158,7 +158,9 @@ export default class ChessGamePlay extends React.Component {
 
                 move.move();
 
-                console.log(`Move executed. Piece now at:`, usePieces.getState().pieces.get(aiMove.to)?.constructor.name);
+                const newPieces = usePieces.getState().pieces;
+                console.log(`Move executed. Piece now at:`, newPieces.get(aiMove.to)?.constructor.name);
+                console.log(`Piece at source ${aiMove.from}:`, newPieces.get(aiMove.from)?.constructor.name);
 
                 // Update AI info with move details
                 const moveNotation = `${aiMove.from}-${aiMove.to}`;
@@ -177,8 +179,10 @@ export default class ChessGamePlay extends React.Component {
                     }
                 });
 
+                // CRITICAL FIX: Create a NEW Map instance to trigger React re-render
+                // React won't detect changes if we pass the same Map reference
                 this.changeColorTurn();
-                this.changeBoardCondition(usePieces.getState().pieces);
+                this.changeBoardCondition(new Map(newPieces));
             } else {
                 console.log("AI has no legal moves");
                 this.setState({

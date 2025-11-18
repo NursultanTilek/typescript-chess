@@ -70,9 +70,9 @@ describe('AI Color Validation - Integration Test', () => {
     pieces = createStartingPosition()
   })
 
-  it('AI playing WHITE should ONLY move pieces from ranks 1-2', () => {
+  it('AI playing WHITE should ONLY move pieces from ranks 1-2', async () => {
     const aiColor = Color.WHITE
-    const move = ai.getMove(pieces, aiColor)
+    const move = await ai.getMove(pieces, aiColor)
 
     expect(move).not.toBeNull()
     if (move) {
@@ -91,9 +91,9 @@ describe('AI Color Validation - Integration Test', () => {
     }
   })
 
-  it('AI playing BLACK should ONLY move pieces from ranks 7-8', () => {
+  it('AI playing BLACK should ONLY move pieces from ranks 7-8', async () => {
     const aiColor = Color.BLACK
-    const move = ai.getMove(pieces, aiColor)
+    const move = await ai.getMove(pieces, aiColor)
 
     expect(move).not.toBeNull()
     if (move) {
@@ -112,7 +112,7 @@ describe('AI Color Validation - Integration Test', () => {
     }
   })
 
-  it('AI should respect color across multiple moves (simulate game)', () => {
+  it('AI should respect color across multiple moves (simulate game)', async () => {
     // Simulate a few moves of a game
     // Move 1: WHITE (human) plays E2-E4
     const whitePawn = pieces.get('E2')!
@@ -121,7 +121,7 @@ describe('AI Color Validation - Integration Test', () => {
     pieces.set('E4', whitePawn)
 
     // Move 2: BLACK (AI) responds
-    const blackMove1 = ai.getMove(pieces, Color.BLACK)
+    const blackMove1 = await ai.getMove(pieces, Color.BLACK)
     expect(blackMove1).not.toBeNull()
     if (blackMove1) {
       console.log(`Move 2 - AI (BLACK): ${blackMove1.from} -> ${blackMove1.to}`)
@@ -135,7 +135,7 @@ describe('AI Color Validation - Integration Test', () => {
     }
 
     // Move 3: WHITE (AI) responds
-    const whiteMove1 = ai.getMove(pieces, Color.WHITE)
+    const whiteMove1 = await ai.getMove(pieces, Color.WHITE)
     expect(whiteMove1).not.toBeNull()
     if (whiteMove1) {
       console.log(`Move 3 - AI (WHITE): ${whiteMove1.from} -> ${whiteMove1.to}`)
@@ -149,7 +149,7 @@ describe('AI Color Validation - Integration Test', () => {
     }
 
     // Move 4: BLACK (AI) responds again
-    const blackMove2 = ai.getMove(pieces, Color.BLACK)
+    const blackMove2 = await ai.getMove(pieces, Color.BLACK)
     expect(blackMove2).not.toBeNull()
     if (blackMove2) {
       console.log(`Move 4 - AI (BLACK): ${blackMove2.from} -> ${blackMove2.to}`)
@@ -158,10 +158,10 @@ describe('AI Color Validation - Integration Test', () => {
     }
   })
 
-  it('AI should never suggest moving opponent pieces', () => {
+  it('AI should never suggest moving opponent pieces', async () => {
     // Test WHITE AI
     for (let i = 0; i < 5; i++) {
-      const whiteMove = ai.getMove(pieces, Color.WHITE)
+      const whiteMove = await ai.getMove(pieces, Color.WHITE)
       if (whiteMove) {
         const piece = pieces.get(whiteMove.from)
         expect(piece?.color).not.toBe(Color.BLACK)
@@ -174,7 +174,7 @@ describe('AI Color Validation - Integration Test', () => {
 
     // Test BLACK AI
     for (let i = 0; i < 5; i++) {
-      const blackMove = ai.getMove(pieces, Color.BLACK)
+      const blackMove = await ai.getMove(pieces, Color.BLACK)
       if (blackMove) {
         const piece = pieces.get(blackMove.from)
         expect(piece?.color).not.toBe(Color.WHITE)
@@ -183,9 +183,9 @@ describe('AI Color Validation - Integration Test', () => {
     }
   })
 
-  it('Opening book moves should respect color', () => {
+  it('Opening book moves should respect color', async () => {
     // Starting position - WHITE to move
-    const whiteOpeningMove = ai.getMove(pieces, Color.WHITE)
+    const whiteOpeningMove = await ai.getMove(pieces, Color.WHITE)
     expect(whiteOpeningMove).not.toBeNull()
     if (whiteOpeningMove) {
       console.log(`Opening move for WHITE: ${whiteOpeningMove.from} -> ${whiteOpeningMove.to}`)
@@ -203,7 +203,7 @@ describe('AI Color Validation - Integration Test', () => {
     ai.clearHistory()
 
     // BLACK to move
-    const blackOpeningMove = ai.getMove(pieces, Color.BLACK)
+    const blackOpeningMove = await ai.getMove(pieces, Color.BLACK)
     expect(blackOpeningMove).not.toBeNull()
     if (blackOpeningMove) {
       console.log(`Opening move for BLACK: ${blackOpeningMove.from} -> ${blackOpeningMove.to}`)

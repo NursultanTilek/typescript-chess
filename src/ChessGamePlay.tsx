@@ -118,7 +118,7 @@ export default class ChessGamePlay extends React.Component {
             const currentPieces = usePieces.getState().pieces;
             // AI plays the opposite color of the player
             const aiColor = this.state.playerColor === Color.WHITE ? Color.BLACK : Color.WHITE;
-            const aiMove = this.chessAI.getMove(currentPieces, aiColor);
+            const aiMove = await this.chessAI.getMove(currentPieces, aiColor);
 
             if (aiMove && aiMove.from && aiMove.to) {
                 debug.log(`AI plays: ${aiMove.from} -> ${aiMove.to}`);

@@ -78,7 +78,7 @@ describe('ChessAI Integration Tests', () => {
   })
 
   describe('Opening Book Usage', () => {
-    it('should use opening book by default', () => {
+    it('should use opening book by default', async () => {
       const ai = new ChessAI()
       const pieces = new Map<CoordinationId, PieceType>()
 
@@ -91,11 +91,11 @@ describe('ChessAI Integration Tests', () => {
       usePieces.getState().setPieces(pieces)
 
       // First few moves should potentially come from opening book
-      const move = ai.getBestMove(pieces, Color.BLACK)
+      const move = await ai.getBestMove(pieces, Color.BLACK)
       expect(move).not.toBeNull()
     })
 
-    it('should allow disabling opening book', () => {
+    it('should allow disabling opening book', async () => {
       const ai = new ChessAI()
       ai.setUseOpeningBook(false)
 
@@ -107,13 +107,13 @@ describe('ChessAI Integration Tests', () => {
       usePieces.getState().setPieces(pieces)
 
       // Should still find a move, but using search instead of book
-      const move = ai.getBestMove(pieces, Color.BLACK)
+      const move = await ai.getBestMove(pieces, Color.BLACK)
       expect(move).not.toBeNull()
     })
   })
 
   describe('Move Generation', () => {
-    it('should generate valid move in simple position', () => {
+    it('should generate valid move in simple position', async () => {
       const ai = new ChessAI(Difficulty.MEDIUM)
       const pieces = new Map<CoordinationId, PieceType>()
 
@@ -124,7 +124,7 @@ describe('ChessAI Integration Tests', () => {
 
       usePieces.getState().setPieces(pieces)
 
-      const move = ai.getMove(pieces, Color.BLACK)
+      const move = await ai.getMove(pieces, Color.BLACK)
 
       expect(move).not.toBeNull()
       if (move) {

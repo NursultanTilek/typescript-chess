@@ -59,12 +59,12 @@ describe('AI Legal Move Validation', () => {
     usePieces.getState().setPieces(pieces)
   })
 
-  it('should suggest a piece that actually exists on the board', () => {
+  it('should suggest a piece that actually exists on the board', async () => {
     const ai = new ChessAI(Difficulty.MEDIUM)
     const pieces = createStartingPosition()
     usePieces.getState().setPieces(pieces)
 
-    const move = ai.getMove(pieces, Color.WHITE)
+    const move = await ai.getMove(pieces, Color.WHITE)
 
     expect(move).not.toBeNull()
     if (move) {
@@ -80,12 +80,12 @@ describe('AI Legal Move Validation', () => {
     }
   })
 
-  it('should not suggest moving to a square occupied by own piece', () => {
+  it('should not suggest moving to a square occupied by own piece', async () => {
     const ai = new ChessAI(Difficulty.MEDIUM)
     const pieces = createStartingPosition()
     usePieces.getState().setPieces(pieces)
 
-    const move = ai.getMove(pieces, Color.WHITE)
+    const move = await ai.getMove(pieces, Color.WHITE)
 
     expect(move).not.toBeNull()
     if (move) {
@@ -103,12 +103,12 @@ describe('AI Legal Move Validation', () => {
     }
   })
 
-  it('should suggest moves that are in the piece legal moves list', () => {
+  it('should suggest moves that are in the piece legal moves list', async () => {
     const ai = new ChessAI(Difficulty.MEDIUM)
     const pieces = createStartingPosition()
     usePieces.getState().setPieces(pieces)
 
-    const move = ai.getMove(pieces, Color.WHITE)
+    const move = await ai.getMove(pieces, Color.WHITE)
 
     expect(move).not.toBeNull()
     if (move) {
@@ -137,13 +137,13 @@ describe('AI Legal Move Validation', () => {
     }
   })
 
-  it('opening book moves should be legal', () => {
+  it('opening book moves should be legal', async () => {
     const ai = new ChessAI(Difficulty.MEDIUM)
     const pieces = createStartingPosition()
     usePieces.getState().setPieces(pieces)
 
     // Get move from starting position (should use opening book)
-    const move = ai.getMove(pieces, Color.WHITE)
+    const move = await ai.getMove(pieces, Color.WHITE)
 
     expect(move).not.toBeNull()
     if (move) {
@@ -169,7 +169,7 @@ describe('AI Legal Move Validation', () => {
     }
   })
 
-  it('AI should handle multiple consecutive legal moves', () => {
+  it('AI should handle multiple consecutive legal moves', async () => {
     const ai = new ChessAI(Difficulty.MEDIUM)
     const pieces = createStartingPosition()
     usePieces.getState().setPieces(pieces)
@@ -179,7 +179,7 @@ describe('AI Legal Move Validation', () => {
       const color = i % 2 === 0 ? Color.WHITE : Color.BLACK
       console.log(`\n--- Move ${i + 1} (${color === Color.WHITE ? 'WHITE' : 'BLACK'}) ---`)
 
-      const move = ai.getMove(pieces, color)
+      const move = await ai.getMove(pieces, color)
       expect(move).not.toBeNull()
 
       if (move) {

@@ -273,6 +273,27 @@ export function mctsSearch(
     child.visits > best.visits ? child : best
   );
 
+  // DEBUG: Log top 5 moves with their visits and values
+  const topMoves = root.children
+    .sort((a, b) => b.visits - a.visits)
+    .slice(0, 5)
+    .map(child => {
+      const capturedPiece = child.move ? state.get(child.move.to) : null;
+      const isCapture = capturedPiece ? `⚔️  ${PieceName[capturedPiece.name]}` : '';
+      return {
+        move: child.move ? `${child.move.from} → ${child.move.to}` : 'unknown',
+        capture: isCapture,
+        visits: child.visits,
+        avgValue: child.visits > 0 ? (child.totalValue / child.visits).toFixed(3) : '0',
+        totalValue: child.totalValue.toFixed(2),
+      };
+    });
+
+  console.log('🤖 MCTS Top 5 Moves:');
+  topMoves.forEach((m, i) => {
+    console.log(`  ${i + 1}. ${m.move} ${m.capture} - visits: ${m.visits}, avgValue: ${m.avgValue}, total: ${m.totalValue}`);
+  });
+
   debug.log(
     `MCTS completed ${iterations} iterations in ${
       Date.now() - startTime

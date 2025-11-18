@@ -137,30 +137,30 @@ export class ChessAI {
 
       case Difficulty.MEDIUM:
         return {
-          iterations: 500,
-          explorationParam: Math.sqrt(2),
-          timeLimitMs: 2000,
+          iterations: 1000,  // Increased: more simulations = better move selection
+          explorationParam: 1.0,  // Reduced: favor known good moves (like captures) over exploration
+          timeLimitMs: 3000,
         };
 
       case Difficulty.HARD:
         return {
-          iterations: 800,
-          explorationParam: Math.sqrt(2),
-          timeLimitMs: 3000,
+          iterations: 1500,  // Increased
+          explorationParam: 0.9,  // Even more exploitation for stronger tactical play
+          timeLimitMs: 4000,
         };
 
       case Difficulty.EXPERT:
         return {
-          iterations: 1200,
-          explorationParam: Math.sqrt(2),
-          timeLimitMs: 5000,
+          iterations: 2500,  // Increased
+          explorationParam: 0.8,  // Strong tactical preference
+          timeLimitMs: 6000,
         };
 
       case Difficulty.MASTER:
         return {
-          iterations: 2000,
-          explorationParam: Math.sqrt(2),
-          timeLimitMs: 8000,
+          iterations: 4000,  // Doubled for master level
+          explorationParam: 0.7,  // Maximum tactical strength
+          timeLimitMs: 10000,
         };
 
       default:

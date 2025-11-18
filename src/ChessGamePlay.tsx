@@ -49,6 +49,23 @@ export default class ChessGamePlay extends React.Component {
         this.chessAI = new ChessAI(Difficulty.MEDIUM);
     }
 
+    /**
+     * Load neural network model when component mounts
+     */
+    async componentDidMount() {
+        console.log('Loading neural network model...');
+        const loaded = await this.chessAI.loadNeuralNetwork('/models/model.json');
+
+        if (loaded) {
+            console.log('✓ Neural network loaded successfully');
+            this.chessAI.setUseNeuralNetwork(true);
+            console.log('✓ Neural network AI enabled - your AI is now much smarter!');
+        } else {
+            console.log('⚠ Neural network not found - using MCTS fallback');
+            console.log('  Train and convert your model, then place in public/models/');
+        }
+    }
+
     gameLoop() {
         const colorToMove: Color = this.state.colorTurn;
 

@@ -14,6 +14,7 @@ import { findBestMove, DEFAULT_SEARCH_CONFIG } from "./search";
 import { getOpeningBookMove, moveToNotation } from "./openingBook";
 import { mctsSearch, DEFAULT_MCTS_CONFIG, MCTSConfig } from "./mcts";
 import { evaluatePosition } from "./evaluation";
+import { getNeuralNetworkPlayer } from "./neuralNetwork";
 import { AIMove, Difficulty, SearchConfig } from "./types";
 import { usePieces } from "../store/usePieces";
 import { debug } from "../utils/debug";
@@ -26,6 +27,7 @@ export class ChessAI {
   private moveHistory: string[] = [];
   private useOpeningBook: boolean = true;
   private useMCTS: boolean = true; // Use MCTS by default (AlphaZero-style)
+  private useNeuralNetwork: boolean = false; // Use trained neural network (requires model to be loaded)
 
   constructor(difficulty: Difficulty = Difficulty.MEDIUM) {
     this.difficulty = difficulty;
@@ -64,6 +66,40 @@ export class ChessAI {
    */
   isUsingMCTS(): boolean {
     return this.useMCTS;
+  }
+
+  /**
+   * Enable or disable Neural Network
+   */
+  setUseNeuralNetwork(use: boolean): void {
+    this.useNeuralNetwork = use;
+    if (use) {
+      // When enabling neural network, disable MCTS to avoid conflicts
+      this.useMCTS = false;
+    }
+  }
+
+  /**
+   * Check if Neural Network is enabled
+   */
+  isUsingNeuralNetwork(): boolean {
+    return this.useNeuralNetwork;
+  }
+
+  /**
+   * Load the neural network model
+   */
+  async loadNeuralNetwork(modelPath?: string): Promise<boolean> {
+    const nn = getNeuralNetworkPlayer();
+    return await nn.loadModel(modelPath);
+  }
+
+  /**
+   * Check if neural network model is ready
+   */
+  isNeuralNetworkReady(): boolean {
+    const nn = getNeuralNetworkPlayer();
+    return nn.isReady();
   }
 
   /**
@@ -199,10 +235,10 @@ export class ChessAI {
   /**
    * Get the best move for the AI
    */
-  getBestMove(
+  async getBestMove(
     pieces: Map<CoordinationId, PieceType>,
     color: Color
-  ): AIMove | null {
+  ): Promise<AIMove | null> {
     debug.log(`AI (${Difficulty[this.difficulty]}) thinking...`);
 
     // Try opening book first (if enabled and early in game)
@@ -219,6 +255,23 @@ export class ChessAI {
           timeMs: 0,
           openingBook: true,
         };
+      }
+    }
+
+    // Use Neural Network if enabled and ready
+    if (this.useNeuralNetwork) {
+      const nn = getNeuralNetworkPlayer();
+      if (nn.isReady()) {
+        debug.log("Using neural network AI");
+        const move = await nn.findBestMove(color);
+        if (move) {
+          this.addMoveToHistory(move.from, move.to);
+          return move;
+        } else {
+          debug.log("Neural network failed, falling back to MCTS");
+        }
+      } else {
+        debug.log("Neural network not ready, falling back to MCTS");
       }
     }
 
@@ -319,17 +372,17 @@ export class ChessAI {
   /**
    * Get AI move with potential errors based on difficulty
    */
-  getMove(
+  async getMove(
     pieces: Map<CoordinationId, PieceType>,
     color: Color
-  ): AIMove | null {
+  ): Promise<AIMove | null> {
     // Occasionally make a random move to simulate human error
     if (this.shouldMakeError()) {
       debug.log("AI making an intentional error (difficulty simulation)");
       return this.getRandomMove(pieces, color);
     }
 
-    return this.getBestMove(pieces, color);
+    return await this.getBestMove(pieces, color);
   }
 
   /**
